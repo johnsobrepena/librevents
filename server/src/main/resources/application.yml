@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: eventeum
+
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: ${SERVER_PORT:8060}
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    net.consensys: DEBUG
+    net.consensys.configs: ERROR
+    org.springframework.amqp: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+
+eventStore:
+  type: ${EVENT_STORE_TYPE:DB}
+  url: ${EVENT_STORE_URL:http://localhost:8081/api/rest/v1}
+  eventPath: ${EVENT_STORE_EVENT_PATH:/event}
+  latestBlockPath: ${EVENT_STORE_LATEST_BLOCK_PATH:/latest-block}
+
+management:
+  endpoints:
+    web:
+      base-path: /monitoring
+      exposure.include: "*"
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+#eventFilters:
+#  - id: DummyContractEvent.default
+#    node: ${NODE_NAME:default}
+#    contractAddress: 0x0
+#    eventSpecification:
+#      eventName: DummyContractEvent
+#      nonIndexedParameterDefinitions:
+#        - position: 0
+#          type: ADDRESS
+#        - position: 1
+#          type: ADDRESS
+#    correlationId:
+#      type: NON_INDEXED_PARAMETER
+#      index: 0
+#
+#
+#transactionFilters:
+#  - nodeName: ${NODE_NAME:default}
+#    type: "TO_ADDRESS"
+#    transactionIdentifierValue: 0x0
+#    statuses: [ 'FAILED' ]
