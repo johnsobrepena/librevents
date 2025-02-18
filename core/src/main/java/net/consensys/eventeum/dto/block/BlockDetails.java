@@ -15,20 +15,21 @@
 package net.consensys.eventeum.dto.block;
 
 import java.math.BigInteger;
+
 import lombok.Data;
 
 /**
  * Represents the details of an Ethereum block.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Data
 public class BlockDetails {
-  private BigInteger number;
+    private BigInteger number;
 
-  private String hash;
+    private String hash;
 
-  private BigInteger timestamp;
+    private BigInteger timestamp;
 
-  private String nodeName;
+    private String nodeName;
 }

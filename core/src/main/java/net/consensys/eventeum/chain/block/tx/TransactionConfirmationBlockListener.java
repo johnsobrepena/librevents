@@ -15,6 +15,7 @@
 package net.consensys.eventeum.chain.block.tx;
 
 import java.util.List;
+
 import net.consensys.eventeum.chain.block.AbstractConfirmationBlockListener;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
@@ -24,51 +25,51 @@ import net.consensys.eventeum.dto.transaction.TransactionStatus;
 import net.consensys.eventeum.integration.broadcast.blockchain.BlockchainEventBroadcaster;
 
 public class TransactionConfirmationBlockListener
-    extends AbstractConfirmationBlockListener<TransactionDetails> {
+        extends AbstractConfirmationBlockListener<TransactionDetails> {
 
-  private BlockchainEventBroadcaster eventBroadcaster;
-  private OnConfirmedCallback onConfirmedCallback;
-  private List<TransactionStatus> statusesToFilter;
+    private BlockchainEventBroadcaster eventBroadcaster;
+    private OnConfirmedCallback onConfirmedCallback;
+    private List<TransactionStatus> statusesToFilter;
 
-  public TransactionConfirmationBlockListener(
-      TransactionDetails transactionDetails,
-      BlockchainService blockchainService,
-      BlockSubscriptionStrategy blockSubscription,
-      BlockchainEventBroadcaster eventBroadcaster,
-      Node node,
-      List<TransactionStatus> statusesToFilter,
-      OnConfirmedCallback onConfirmedCallback) {
-    super(transactionDetails, blockchainService, blockSubscription, node);
-    this.eventBroadcaster = eventBroadcaster;
-    this.onConfirmedCallback = onConfirmedCallback;
-    this.statusesToFilter = statusesToFilter;
-  }
-
-  @Override
-  protected void broadcastEventConfirmed() {
-    super.broadcastEventConfirmed();
-
-    onConfirmedCallback.onConfirmed();
-  }
-
-  @Override
-  protected String getEventIdentifier(TransactionDetails transactionDetails) {
-    return transactionDetails.getHash() + transactionDetails.getBlockHash();
-  }
-
-  @Override
-  protected void setStatus(TransactionDetails transactionDetails, String status) {
-    transactionDetails.setStatus(TransactionStatus.valueOf(status));
-  }
-
-  @Override
-  protected void broadcast(TransactionDetails transactionDetails) {
-    if (statusesToFilter.contains(transactionDetails.getStatus())) {
-      eventBroadcaster.broadcastTransaction(transactionDetails);
+    public TransactionConfirmationBlockListener(
+            TransactionDetails transactionDetails,
+            BlockchainService blockchainService,
+            BlockSubscriptionStrategy blockSubscription,
+            BlockchainEventBroadcaster eventBroadcaster,
+            Node node,
+            List<TransactionStatus> statusesToFilter,
+            OnConfirmedCallback onConfirmedCallback) {
+        super(transactionDetails, blockchainService, blockSubscription, node);
+        this.eventBroadcaster = eventBroadcaster;
+        this.onConfirmedCallback = onConfirmedCallback;
+        this.statusesToFilter = statusesToFilter;
     }
-  }
 
-  public interface OnConfirmedCallback {
-    void onConfirmed();
-  }
+    @Override
+    protected void broadcastEventConfirmed() {
+        super.broadcastEventConfirmed();
+
+        onConfirmedCallback.onConfirmed();
+    }
+
+    @Override
+    protected String getEventIdentifier(TransactionDetails transactionDetails) {
+        return transactionDetails.getHash() + transactionDetails.getBlockHash();
+    }
+
+    @Override
+    protected void setStatus(TransactionDetails transactionDetails, String status) {
+        transactionDetails.setStatus(TransactionStatus.valueOf(status));
+    }
+
+    @Override
+    protected void broadcast(TransactionDetails transactionDetails) {
+        if (statusesToFilter.contains(transactionDetails.getStatus())) {
+            eventBroadcaster.broadcastTransaction(transactionDetails);
+        }
+    }
+
+    public interface OnConfirmedCallback {
+        void onConfirmed();
+    }
 }

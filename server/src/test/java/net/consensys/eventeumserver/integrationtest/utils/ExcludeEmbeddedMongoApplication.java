@@ -20,7 +20,7 @@ import org.springframework.boot.SpringApplication;
 // @EnableEventeum
 public class ExcludeEmbeddedMongoApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(ExcludeEmbeddedMongoApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(ExcludeEmbeddedMongoApplication.class, args);
+    }
 }

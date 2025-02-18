@@ -24,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
 import net.consensys.eventeum.chain.factory.TransactionDetailsFactory;
@@ -48,242 +49,245 @@ import org.web3j.utils.Numeric;
 @Component
 @Slf4j
 public class DefaultTransactionMonitoringBlockListener
-    implements TransactionMonitoringBlockListener {
+        implements TransactionMonitoringBlockListener {
 
-  // Keyed by node name
-  private Map<String, List<TransactionMatchingCriteria>> criteria;
+    // Keyed by node name
+    private Map<String, List<TransactionMatchingCriteria>> criteria;
 
-  private ChainServicesContainer chainServicesContainer;
+    private ChainServicesContainer chainServicesContainer;
 
-  private BlockchainEventBroadcaster broadcaster;
+    private BlockchainEventBroadcaster broadcaster;
 
-  private TransactionDetailsFactory transactionDetailsFactory;
+    private TransactionDetailsFactory transactionDetailsFactory;
 
-  private BlockCache blockCache;
+    private BlockCache blockCache;
 
-  private Lock lock = new ReentrantLock();
+    private Lock lock = new ReentrantLock();
 
-  private NodeSettings nodeSettings;
+    private NodeSettings nodeSettings;
 
-  public DefaultTransactionMonitoringBlockListener(
-      ChainServicesContainer chainServicesContainer,
-      BlockchainEventBroadcaster broadcaster,
-      TransactionDetailsFactory transactionDetailsFactory,
-      BlockCache blockCache,
-      NodeSettings nodeSettings) {
-    this.criteria = new ConcurrentHashMap<>();
+    public DefaultTransactionMonitoringBlockListener(
+            ChainServicesContainer chainServicesContainer,
+            BlockchainEventBroadcaster broadcaster,
+            TransactionDetailsFactory transactionDetailsFactory,
+            BlockCache blockCache,
+            NodeSettings nodeSettings) {
+        this.criteria = new ConcurrentHashMap<>();
 
-    this.chainServicesContainer = chainServicesContainer;
+        this.chainServicesContainer = chainServicesContainer;
 
-    this.broadcaster = broadcaster;
-    this.transactionDetailsFactory = transactionDetailsFactory;
-    this.blockCache = blockCache;
-    this.nodeSettings = nodeSettings;
-  }
-
-  @Override
-  public void onBlock(Block block) {
-    lock.lock();
-
-    try {
-      processBlock(block);
-    } finally {
-      lock.unlock();
+        this.broadcaster = broadcaster;
+        this.transactionDetailsFactory = transactionDetailsFactory;
+        this.blockCache = blockCache;
+        this.nodeSettings = nodeSettings;
     }
-  }
 
-  @Override
-  public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
+    @Override
+    public void onBlock(Block block) {
+        lock.lock();
 
-    lock.lock();
-
-    try {
-      final String nodeName = matchingCriteria.getNodeName();
-
-      if (!criteria.containsKey(nodeName)) {
-        criteria.put(nodeName, new CopyOnWriteArrayList<>());
-      }
-
-      criteria.get(nodeName).add(matchingCriteria);
-
-      // Check if any cached blocks match
-      // Note, this makes sense for tx hash but maybe doesn't for some other matchers?
-      blockCache
-          .getCachedBlocks()
-          .forEach(
-              block -> {
-                block
-                    .getTransactions()
-                    .forEach(
-                        tx ->
-                            broadcastIfMatched(
-                                tx, block, Collections.singletonList(matchingCriteria)));
-              });
-    } finally {
-      lock.unlock();
-    }
-  }
-
-  @Override
-  public void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
-    criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
-  }
-
-  private void processBlock(Block block) {
-    block.getTransactions().forEach(tx -> broadcastIfMatched(tx, block));
-  }
-
-  protected void broadcastIfMatched(
-      Transaction tx, Block block, List<TransactionMatchingCriteria> criteriaToCheck) {
-
-    final TransactionDetails txDetails =
-        transactionDetailsFactory.createTransactionDetails(
-            tx, TransactionStatus.CONFIRMED, block); // CONFIRMED by default
-
-    if (block instanceof HederaBlock && tx.getTo() == null) {
-      List<String> addresses =
-          ((HederaBlock) block)
-              .getContractResults().stream()
-                  .map(ContractResultResponse::getStateChanges)
-                  .flatMap(Collection::stream)
-                  .collect(Collectors.toList())
-                  .stream()
-                  .map(StateChangeResponse::getAddress)
-                  .distinct()
-                  .collect(Collectors.toList());
-      addresses.stream()
-          .forEach(
-              address -> {
-                txDetails.setTo(address);
-                // Only broadcast once, even if multiple matching criteria apply
-                checkTxCriteria(criteriaToCheck, txDetails);
-              });
-    } else {
-      // Only broadcast once, even if multiple matching criteria apply
-      checkTxCriteria(criteriaToCheck, txDetails);
-    }
-  }
-
-  private void checkTxCriteria(
-      List<TransactionMatchingCriteria> criteriaToCheck, TransactionDetails txDetails) {
-    criteriaToCheck.stream()
-        .filter(matcher -> matcher.isAMatch(txDetails))
-        .findFirst()
-        .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
-  }
-
-  private void broadcastIfMatched(Transaction tx, Block block) {
-    if (criteria.containsKey(block.getNodeName())) {
-      broadcastIfMatched(tx, block, criteria.get(block.getNodeName()));
-    }
-  }
-
-  protected void onTransactionMatched(
-      TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
-
-    final Node node = nodeSettings.getNode(txDetails.getNodeName());
-    final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
-    final BlockSubscriptionStrategy blockSubscription =
-        getBlockSubscriptionStrategy(txDetails.getNodeName());
-
-    final boolean isSuccess = isSuccessTransaction(txDetails);
-
-    if (isSuccess && shouldWaitBeforeConfirmation(node)) {
-      txDetails.setStatus(TransactionStatus.UNCONFIRMED);
-
-      blockSubscription.addBlockListener(
-          new TransactionConfirmationBlockListener(
-              txDetails,
-              blockchainService,
-              blockSubscription,
-              broadcaster,
-              node,
-              matchingCriteria.getStatuses(),
-              () -> onConfirmed(txDetails, matchingCriteria)));
-
-      broadcastTransaction(txDetails, matchingCriteria);
-
-      // Don't remove criteria if we're waiting for x blocks, as if there is a fork
-      // we need to rebroadcast the unconfirmed tx in new block
-    } else {
-      if (!isSuccess) {
-        txDetails.setStatus(TransactionStatus.FAILED);
-
-        String reason = getRevertReason(txDetails);
-
-        if (reason != null) {
-          txDetails.setRevertReason(reason);
+        try {
+            processBlock(block);
+        } finally {
+            lock.unlock();
         }
-      }
-
-      broadcastTransaction(txDetails, matchingCriteria);
-
-      if (matchingCriteria.isOneTimeMatch()) {
-        removeMatchingCriteria(matchingCriteria);
-      }
-    }
-  }
-
-  private void broadcastTransaction(
-      TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
-    if (matchingCriteria.getStatuses().contains(txDetails.getStatus())) {
-      broadcaster.broadcastTransaction(txDetails);
-    }
-  }
-
-  private boolean isSuccessTransaction(TransactionDetails txDetails) {
-    /*if (txDetails.getStatus() != null) {
-        return txDetails.isSuccess();
-    }*/
-
-    final TransactionReceipt receipt =
-        getBlockchainService(txDetails.getNodeName()).getTransactionReceipt(txDetails.getHash());
-
-    if (receipt.getStatus() == null) {
-      // status is only present on Byzantium transactions onwards
-      return true;
     }
 
-    if (receipt.getStatus().equals("0x0")) {
-      return false;
+    @Override
+    public void addMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
+
+        lock.lock();
+
+        try {
+            final String nodeName = matchingCriteria.getNodeName();
+
+            if (!criteria.containsKey(nodeName)) {
+                criteria.put(nodeName, new CopyOnWriteArrayList<>());
+            }
+
+            criteria.get(nodeName).add(matchingCriteria);
+
+            // Check if any cached blocks match
+            // Note, this makes sense for tx hash but maybe doesn't for some other matchers?
+            blockCache
+                    .getCachedBlocks()
+                    .forEach(
+                            block -> {
+                                block.getTransactions()
+                                        .forEach(
+                                                tx ->
+                                                        broadcastIfMatched(
+                                                                tx,
+                                                                block,
+                                                                Collections.singletonList(
+                                                                        matchingCriteria)));
+                            });
+        } finally {
+            lock.unlock();
+        }
     }
 
-    return true;
-  }
-
-  private boolean shouldWaitBeforeConfirmation(Node node) {
-    return !node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
-  }
-
-  private BlockchainService getBlockchainService(String nodeName) {
-    return chainServicesContainer.getNodeServices(nodeName).getBlockchainService();
-  }
-
-  private BlockSubscriptionStrategy getBlockSubscriptionStrategy(String nodeName) {
-    return chainServicesContainer.getNodeServices(nodeName).getBlockSubscriptionStrategy();
-  }
-
-  private void onConfirmed(
-      TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
-    if (matchingCriteria.isOneTimeMatch()) {
-      log.debug("Tx {} confirmed, removing matchingCriteria", txDetails.getHash());
-
-      removeMatchingCriteria(matchingCriteria);
-    }
-  }
-
-  private String getRevertReason(TransactionDetails txDetails) {
-    Node node = nodeSettings.getNode(txDetails.getNodeName());
-
-    if (!node.getAddTransactionRevertReason() || txDetails.getRevertReason() != null) {
-      return null;
+    @Override
+    public void removeMatchingCriteria(TransactionMatchingCriteria matchingCriteria) {
+        criteria.get(matchingCriteria.getNodeName()).remove(matchingCriteria);
     }
 
-    return getBlockchainService(txDetails.getNodeName())
-        .getRevertReason(
-            txDetails.getFrom(),
-            txDetails.getTo(),
-            Numeric.toBigInt(txDetails.getBlockNumber()),
-            txDetails.getInput());
-  }
+    private void processBlock(Block block) {
+        block.getTransactions().forEach(tx -> broadcastIfMatched(tx, block));
+    }
+
+    protected void broadcastIfMatched(
+            Transaction tx, Block block, List<TransactionMatchingCriteria> criteriaToCheck) {
+
+        final TransactionDetails txDetails =
+                transactionDetailsFactory.createTransactionDetails(
+                        tx, TransactionStatus.CONFIRMED, block); // CONFIRMED by default
+
+        if (block instanceof HederaBlock && tx.getTo() == null) {
+            List<String> addresses =
+                    ((HederaBlock) block)
+                            .getContractResults().stream()
+                                    .map(ContractResultResponse::getStateChanges)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toList())
+                                    .stream()
+                                    .map(StateChangeResponse::getAddress)
+                                    .distinct()
+                                    .collect(Collectors.toList());
+            addresses.stream()
+                    .forEach(
+                            address -> {
+                                txDetails.setTo(address);
+                                // Only broadcast once, even if multiple matching criteria apply
+                                checkTxCriteria(criteriaToCheck, txDetails);
+                            });
+        } else {
+            // Only broadcast once, even if multiple matching criteria apply
+            checkTxCriteria(criteriaToCheck, txDetails);
+        }
+    }
+
+    private void checkTxCriteria(
+            List<TransactionMatchingCriteria> criteriaToCheck, TransactionDetails txDetails) {
+        criteriaToCheck.stream()
+                .filter(matcher -> matcher.isAMatch(txDetails))
+                .findFirst()
+                .ifPresent(matcher -> onTransactionMatched(txDetails, matcher));
+    }
+
+    private void broadcastIfMatched(Transaction tx, Block block) {
+        if (criteria.containsKey(block.getNodeName())) {
+            broadcastIfMatched(tx, block, criteria.get(block.getNodeName()));
+        }
+    }
+
+    protected void onTransactionMatched(
+            TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+
+        final Node node = nodeSettings.getNode(txDetails.getNodeName());
+        final BlockchainService blockchainService = getBlockchainService(txDetails.getNodeName());
+        final BlockSubscriptionStrategy blockSubscription =
+                getBlockSubscriptionStrategy(txDetails.getNodeName());
+
+        final boolean isSuccess = isSuccessTransaction(txDetails);
+
+        if (isSuccess && shouldWaitBeforeConfirmation(node)) {
+            txDetails.setStatus(TransactionStatus.UNCONFIRMED);
+
+            blockSubscription.addBlockListener(
+                    new TransactionConfirmationBlockListener(
+                            txDetails,
+                            blockchainService,
+                            blockSubscription,
+                            broadcaster,
+                            node,
+                            matchingCriteria.getStatuses(),
+                            () -> onConfirmed(txDetails, matchingCriteria)));
+
+            broadcastTransaction(txDetails, matchingCriteria);
+
+            // Don't remove criteria if we're waiting for x blocks, as if there is a fork
+            // we need to rebroadcast the unconfirmed tx in new block
+        } else {
+            if (!isSuccess) {
+                txDetails.setStatus(TransactionStatus.FAILED);
+
+                String reason = getRevertReason(txDetails);
+
+                if (reason != null) {
+                    txDetails.setRevertReason(reason);
+                }
+            }
+
+            broadcastTransaction(txDetails, matchingCriteria);
+
+            if (matchingCriteria.isOneTimeMatch()) {
+                removeMatchingCriteria(matchingCriteria);
+            }
+        }
+    }
+
+    private void broadcastTransaction(
+            TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+        if (matchingCriteria.getStatuses().contains(txDetails.getStatus())) {
+            broadcaster.broadcastTransaction(txDetails);
+        }
+    }
+
+    private boolean isSuccessTransaction(TransactionDetails txDetails) {
+        /*if (txDetails.getStatus() != null) {
+            return txDetails.isSuccess();
+        }*/
+
+        final TransactionReceipt receipt =
+                getBlockchainService(txDetails.getNodeName())
+                        .getTransactionReceipt(txDetails.getHash());
+
+        if (receipt.getStatus() == null) {
+            // status is only present on Byzantium transactions onwards
+            return true;
+        }
+
+        if (receipt.getStatus().equals("0x0")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean shouldWaitBeforeConfirmation(Node node) {
+        return !node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO);
+    }
+
+    private BlockchainService getBlockchainService(String nodeName) {
+        return chainServicesContainer.getNodeServices(nodeName).getBlockchainService();
+    }
+
+    private BlockSubscriptionStrategy getBlockSubscriptionStrategy(String nodeName) {
+        return chainServicesContainer.getNodeServices(nodeName).getBlockSubscriptionStrategy();
+    }
+
+    private void onConfirmed(
+            TransactionDetails txDetails, TransactionMatchingCriteria matchingCriteria) {
+        if (matchingCriteria.isOneTimeMatch()) {
+            log.debug("Tx {} confirmed, removing matchingCriteria", txDetails.getHash());
+
+            removeMatchingCriteria(matchingCriteria);
+        }
+    }
+
+    private String getRevertReason(TransactionDetails txDetails) {
+        Node node = nodeSettings.getNode(txDetails.getNodeName());
+
+        if (!node.getAddTransactionRevertReason() || txDetails.getRevertReason() != null) {
+            return null;
+        }
+
+        return getBlockchainService(txDetails.getNodeName())
+                .getRevertReason(
+                        txDetails.getFrom(),
+                        txDetails.getTo(),
+                        Numeric.toBigInt(txDetails.getBlockNumber()),
+                        txDetails.getInput());
+    }
 }

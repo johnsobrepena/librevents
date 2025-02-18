@@ -14,10 +14,11 @@
 
 package net.consensys.eventeum.model;
 
+import java.math.BigInteger;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,10 +34,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 public class EventFilterSyncStatus {
 
-  @jakarta.persistence.Id @Id private String filterId;
+    @jakarta.persistence.Id @Id private String filterId;
 
-  private BigInteger lastBlockNumber;
+    private BigInteger lastBlockNumber;
 
-  @Enumerated(EnumType.STRING)
-  private SyncStatus syncStatus;
+    @Enumerated(EnumType.STRING)
+    private SyncStatus syncStatus;
 }

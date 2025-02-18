@@ -14,12 +14,11 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.util.AssertionErrors.assertTrue;
-
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -33,212 +32,222 @@ import org.junit.jupiter.api.Assertions;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
+
 public abstract class MainBroadcasterTests extends BaseKafkaIntegrationTest {
 
-  public void doTestBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
+    public void doTestBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
 
-    final EventEmitter emitter = deployEventEmitterContract();
+        final EventEmitter emitter = deployEventEmitterContract();
 
-    final ContractEventFilter registeredFilter =
-        registerDummyEventFilter(emitter.getContractAddress());
-    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        final ContractEventFilter registeredFilter =
+                registerDummyEventFilter(emitter.getContractAddress());
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-    waitForContractEventMessages(1);
+        waitForContractEventMessages(1);
 
-    assertEquals(1, getBroadcastContractEvents().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-    final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
-    verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
-  }
-
-  public void doTestBroadcastsNotOrderedEvent() throws Exception {
-    final EventEmitter emitter = deployEventEmitterContract();
-
-    final ContractEventFilter filter =
-        createDummyEventNotOrderedFilter(emitter.getContractAddress());
-    final ContractEventFilter registeredFilter = registerEventFilter(filter);
-    emitter.emitEventNotOrdered(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
-
-    waitForContractEventMessages(1);
-
-    assertEquals(1, getBroadcastContractEvents().size());
-
-    final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
-    verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
-  }
-
-  public void doTestBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
-
-    final EventEmitter emitter = deployEventEmitterContract();
-
-    final ContractEventFilter registeredFilter =
-        registerDummyEventFilter(emitter.getContractAddress());
-    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
-
-    waitForFilterPoll();
-    triggerBlocks(12);
-
-    waitForContractEventMessages(1);
-
-    Assertions.assertTrue(getBroadcastContractEvents().size() > 0);
-
-    final ContractEventDetails eventDetails =
-        getBroadcastContractEvents().get(getBroadcastContractEvents().size() - 1);
-    verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
-  }
-
-  public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
-    final EventEmitter emitter = deployEventEmitterContract();
-    final ContractEventFilter filter = doRegisterAndUnregister(emitter.getContractAddress());
-    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
-
-    waitForBroadcast();
-
-    // For some reason events are sometimes consumed for old tests on circleci
-    // Allow events as long as they aren't for this tests registered filter
-    if (getBroadcastContractEvents().size() > 0) {
-      getBroadcastContractEvents()
-          .forEach(event -> assertNotEquals(filter.getId(), event.getFilterId()));
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
-  }
 
-  public void doTestBroadcastBlock() throws Exception {
-    triggerBlocks(1);
+    public void doTestBroadcastsNotOrderedEvent() throws Exception {
+        final EventEmitter emitter = deployEventEmitterContract();
 
-    waitForBlockMessages(1);
+        final ContractEventFilter filter =
+                createDummyEventNotOrderedFilter(emitter.getContractAddress());
+        final ContractEventFilter registeredFilter = registerEventFilter(filter);
+        emitter.emitEventNotOrdered(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue")
+                .send();
 
-    assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
+        waitForContractEventMessages(1);
 
-    BlockDetails blockDetails = getBroadcastBlockMessages().getFirst();
-    assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
-    assertNotNull(blockDetails.getHash());
-  }
+        assertEquals(1, getBroadcastContractEvents().size());
 
-  public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
+    }
 
-    final String signedTxHex = createRawSignedTransactionHex();
+    public void doTestBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
 
-    return monitorSendAndAssertTransactionBroadcastFilteredByHash(
-        signedTxHex, TransactionStatus.UNCONFIRMED);
-  }
+        final EventEmitter emitter = deployEventEmitterContract();
 
-  public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+        final ContractEventFilter registeredFilter =
+                registerDummyEventFilter(emitter.getContractAddress());
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-    final String txHash = doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
+        waitForFilterPoll();
+        triggerBlocks(12);
 
-    triggerBlocks(12);
-    waitForTransactionMessages(2);
+        waitForContractEventMessages(1);
 
-    assertEquals(2, getBroadcastTransactionMessages().size());
-    final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
-    assertEquals(txHash, txDetails.getHash());
-    assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
-  }
+        Assertions.assertTrue(getBroadcastContractEvents().size() > 0);
 
-  public String doTestBroadcastFailedTransactionFilteredByHash() throws Exception {
+        final ContractEventDetails eventDetails =
+                getBroadcastContractEvents().get(getBroadcastContractEvents().size() - 1);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
+    }
 
-    final EventEmitter emitter = deployEventEmitterContract();
+    public void doTestContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
+        final EventEmitter emitter = deployEventEmitterContract();
+        final ContractEventFilter filter = doRegisterAndUnregister(emitter.getContractAddress());
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-    // Sending ether to the emitter contract will fails as theres no payable fallback
-    final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
+        waitForBroadcast();
 
-    return monitorSendAndAssertTransactionBroadcastFilteredByHash(
-        signedTxHex, TransactionStatus.FAILED);
-  }
+        // For some reason events are sometimes consumed for old tests on circleci
+        // Allow events as long as they aren't for this tests registered filter
+        if (getBroadcastContractEvents().size() > 0) {
+            getBroadcastContractEvents()
+                    .forEach(event -> assertNotEquals(filter.getId(), event.getFilterId()));
+        }
+    }
 
-  private String monitorSendAndAssertTransactionBroadcastFilteredByHash(
-      String signedTxHex, TransactionStatus expectedStatus)
-      throws ExecutionException, InterruptedException {
+    public void doTestBroadcastBlock() throws Exception {
+        triggerBlocks(1);
 
-    final String txHash = Hash.sha3(signedTxHex);
-    TransactionMonitoringSpec monitorSpec =
-        new TransactionMonitoringSpec(
-            TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
+        waitForBlockMessages(1);
 
-    monitorTransaction(monitorSpec);
+        assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
 
-    assertEquals(txHash, sendRawTransaction(signedTxHex));
+        BlockDetails blockDetails = getBroadcastBlockMessages().getFirst();
+        assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
+        assertNotNull(blockDetails.getHash());
+    }
 
-    waitForTransactionMessages(1);
+    public String doTestBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
 
-    Assertions.assertTrue(getBroadcastTransactionMessages().size() > 0);
+        final String signedTxHex = createRawSignedTransactionHex();
 
-    final TransactionDetails txDetails =
-        getBroadcastTransactionMessages().get(getBroadcastTransactionMessages().size() - 1);
-    assertEquals(txHash, txDetails.getHash());
-    assertEquals(expectedStatus, txDetails.getStatus());
-    assertNotNull(txDetails.getTimestamp());
+        return monitorSendAndAssertTransactionBroadcastFilteredByHash(
+                signedTxHex, TransactionStatus.UNCONFIRMED);
+    }
 
-    return txHash;
-  }
+    public void doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
 
-  public String doTestBroadcastFailedTransactionFilteredByTo() throws Exception {
+        final String txHash = doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
 
-    final EventEmitter emitter = deployEventEmitterContract();
+        triggerBlocks(12);
+        waitForTransactionMessages(2);
 
-    String toAddress = emitter.getContractAddress();
-    final String signedTxHex = createRawSignedTransactionHex(toAddress);
+        assertEquals(2, getBroadcastTransactionMessages().size());
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(1);
+        assertEquals(txHash, txDetails.getHash());
+        assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
+    }
 
-    return monitorSendAndAssertTransactionBroadcastByTo(
-        signedTxHex, toAddress, TransactionStatus.FAILED);
-  }
+    public String doTestBroadcastFailedTransactionFilteredByHash() throws Exception {
 
-  private String monitorSendAndAssertTransactionBroadcastByTo(
-      String signedTxHex, String toAddress, TransactionStatus expectedStatus)
-      throws ExecutionException, InterruptedException {
+        final EventEmitter emitter = deployEventEmitterContract();
 
-    TransactionMonitoringSpec monitorSpec =
-        new TransactionMonitoringSpec(
-            TransactionIdentifierType.TO_ADDRESS, toAddress, Constants.DEFAULT_NODE_NAME);
+        // Sending ether to the emitter contract will fails as theres no payable fallback
+        final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
 
-    monitorTransaction(monitorSpec);
+        return monitorSendAndAssertTransactionBroadcastFilteredByHash(
+                signedTxHex, TransactionStatus.FAILED);
+    }
 
-    sendRawTransaction(signedTxHex);
+    private String monitorSendAndAssertTransactionBroadcastFilteredByHash(
+            String signedTxHex, TransactionStatus expectedStatus)
+            throws ExecutionException, InterruptedException {
 
-    waitForTransactionMessages(1);
+        final String txHash = Hash.sha3(signedTxHex);
+        TransactionMonitoringSpec monitorSpec =
+                new TransactionMonitoringSpec(
+                        TransactionIdentifierType.HASH, txHash, Constants.DEFAULT_NODE_NAME);
 
-    assertEquals(1, getBroadcastTransactionMessages().size());
+        monitorTransaction(monitorSpec);
 
-    final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
-    assertEquals(Keys.toChecksumAddress(toAddress), txDetails.getTo());
-    assertEquals(expectedStatus, txDetails.getStatus());
+        assertEquals(txHash, sendRawTransaction(signedTxHex));
 
-    return signedTxHex;
-  }
+        waitForTransactionMessages(1);
 
-  public String doTestBroadcastFailedTransactionFilteredByFrom() throws Exception {
+        assertFalse(getBroadcastTransactionMessages().isEmpty());
 
-    final EventEmitter emitter = deployEventEmitterContract();
+        final Optional<TransactionDetails> txDetails =
+                getBroadcastTransactionMessages().stream()
+                        .filter(t -> t.getHash().equals(txHash))
+                        .findFirst();
+        Assertions.assertTrue(txDetails.isPresent());
+        assertEquals(txHash, txDetails.get().getHash());
+        assertEquals(expectedStatus, txDetails.get().getStatus());
+        assertNotNull(txDetails.get().getTimestamp());
 
-    final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
+        return txHash;
+    }
 
-    return monitorSendAndAssertTransactionBroadcastByFrom(signedTxHex, TransactionStatus.FAILED);
-  }
+    public String doTestBroadcastFailedTransactionFilteredByTo() throws Exception {
 
-  private String monitorSendAndAssertTransactionBroadcastByFrom(
-      String signedTxHex, TransactionStatus expectedStatus)
-      throws ExecutionException, InterruptedException {
+        final EventEmitter emitter = deployEventEmitterContract();
 
-    TransactionMonitoringSpec monitorSpec =
-        new TransactionMonitoringSpec(
-            TransactionIdentifierType.FROM_ADDRESS,
-            CREDS.getAddress(),
-            Constants.DEFAULT_NODE_NAME,
-            List.of(TransactionStatus.FAILED),
-            null);
+        String toAddress = emitter.getContractAddress();
+        final String signedTxHex = createRawSignedTransactionHex(toAddress);
 
-    monitorTransaction(monitorSpec);
+        return monitorSendAndAssertTransactionBroadcastByTo(
+                signedTxHex, toAddress, TransactionStatus.FAILED);
+    }
 
-    sendRawTransaction(signedTxHex);
+    private String monitorSendAndAssertTransactionBroadcastByTo(
+            String signedTxHex, String toAddress, TransactionStatus expectedStatus)
+            throws ExecutionException, InterruptedException {
 
-    waitForTransactionMessages(1);
+        TransactionMonitoringSpec monitorSpec =
+                new TransactionMonitoringSpec(
+                        TransactionIdentifierType.TO_ADDRESS,
+                        toAddress,
+                        Constants.DEFAULT_NODE_NAME);
 
-    assertEquals(1, getBroadcastTransactionMessages().size());
+        monitorTransaction(monitorSpec);
 
-    final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
-    assertEquals(Keys.toChecksumAddress(CREDS.getAddress()), txDetails.getFrom());
-    assertEquals(expectedStatus, txDetails.getStatus());
+        sendRawTransaction(signedTxHex);
 
-    return signedTxHex;
-  }
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
+        assertEquals(Keys.toChecksumAddress(toAddress), txDetails.getTo());
+        assertEquals(expectedStatus, txDetails.getStatus());
+
+        return signedTxHex;
+    }
+
+    public String doTestBroadcastFailedTransactionFilteredByFrom() throws Exception {
+
+        final EventEmitter emitter = deployEventEmitterContract();
+
+        final String signedTxHex = createRawSignedTransactionHex(emitter.getContractAddress());
+
+        return monitorSendAndAssertTransactionBroadcastByFrom(
+                signedTxHex, TransactionStatus.FAILED);
+    }
+
+    private String monitorSendAndAssertTransactionBroadcastByFrom(
+            String signedTxHex, TransactionStatus expectedStatus)
+            throws ExecutionException, InterruptedException {
+
+        TransactionMonitoringSpec monitorSpec =
+                new TransactionMonitoringSpec(
+                        TransactionIdentifierType.FROM_ADDRESS,
+                        CREDS.getAddress(),
+                        Constants.DEFAULT_NODE_NAME,
+                        List.of(TransactionStatus.FAILED),
+                        null);
+
+        monitorTransaction(monitorSpec);
+
+        sendRawTransaction(signedTxHex);
+
+        waitForTransactionMessages(1);
+
+        assertEquals(1, getBroadcastTransactionMessages().size());
+
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
+        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()), txDetails.getFrom());
+        assertEquals(expectedStatus, txDetails.getStatus());
+
+        return signedTxHex;
+    }
 }

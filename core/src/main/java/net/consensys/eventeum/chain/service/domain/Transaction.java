@@ -16,35 +16,35 @@ package net.consensys.eventeum.chain.service.domain;
 
 public interface Transaction {
 
-  String getHash();
+    String getHash();
 
-  String getNonce();
+    String getNonce();
 
-  String getBlockHash();
+    String getBlockHash();
 
-  String getBlockNumber();
+    String getBlockNumber();
 
-  String getTransactionIndex();
+    String getTransactionIndex();
 
-  String getFrom();
+    String getFrom();
 
-  String getTo();
+    String getTo();
 
-  String getValue();
+    String getValue();
 
-  String getGasPrice();
+    String getGasPrice();
 
-  String getGas();
+    String getGas();
 
-  String getInput();
+    String getInput();
 
-  String getCreates();
+    String getCreates();
 
-  String getPublicKey();
+    String getPublicKey();
 
-  String getR();
+    String getR();
 
-  String getS();
+    String getS();
 
-  long getV();
+    long getV();
 }

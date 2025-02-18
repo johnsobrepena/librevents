@@ -14,13 +14,14 @@
 
 package net.consensys.eventeum.dto.event.filter;
 
+import java.math.BigInteger;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.math.BigInteger;
-import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.constant.Constants;
@@ -31,7 +32,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * Represents the details of a contract event filter.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Document
 @Entity
@@ -40,18 +41,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ContractEventFilter {
 
-  @Id private String id;
+    @Id private String id;
 
-  private String contractAddress;
+    private String contractAddress;
 
-  private String node = Constants.DEFAULT_NODE_NAME;
+    private String node = Constants.DEFAULT_NODE_NAME;
 
-  @Embedded private ContractEventSpecification eventSpecification;
+    @Embedded private ContractEventSpecification eventSpecification;
 
-  @Embedded private ParameterCorrelationIdStrategy correlationIdStrategy;
+    @Embedded private ParameterCorrelationIdStrategy correlationIdStrategy;
 
-  private BigInteger startBlock;
+    private BigInteger startBlock;
 
-  @Convert(converter = HashMapConverter.class)
-  private Map<String, Object> extension;
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Object> extension;
 }

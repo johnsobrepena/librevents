@@ -23,21 +23,21 @@ import net.consensys.eventeum.dto.event.serializer.NumberParameterSerializer;
 /**
  * Useful JSON based utility methods.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 public class JSON {
-  private static ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
-  public static String stringify(Object object) {
-    try {
-      SimpleModule module = new SimpleModule();
-      module.addSerializer(NumberParameter.class, new NumberParameterSerializer());
-      objectMapper.registerModule(module);
+    public static String stringify(Object object) {
+        try {
+            SimpleModule module = new SimpleModule();
+            module.addSerializer(NumberParameter.class, new NumberParameterSerializer());
+            objectMapper.registerModule(module);
 
-      return objectMapper.writeValueAsString(object);
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-      return "<Unable to convert to JSON>";
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "<Unable to convert to JSON>";
+        }
     }
-  }
 }

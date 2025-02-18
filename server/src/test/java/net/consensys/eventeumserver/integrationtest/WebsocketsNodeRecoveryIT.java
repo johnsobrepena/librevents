@@ -27,18 +27,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(locations = "classpath:application-test-ws-pubsub.properties")
 public class WebsocketsNodeRecoveryIT extends NodeRecoveryTests {
 
-  @Test
-  public void singleNodeFailureRecoveryTest() throws Exception {
-    doSingleNodeFailureRecoveryTest();
-  }
+    @Test
+    public void singleNodeFailureRecoveryTest() throws Exception {
+        doSingleNodeFailureRecoveryTest();
+    }
 
-  @Test
-  public void multipleNodeFailuresRecoveryTest() throws Exception {
-    doMultipleNodeFailuresRecoveryTest();
-  }
+    @Test
+    public void multipleNodeFailuresRecoveryTest() throws Exception {
+        doMultipleNodeFailuresRecoveryTest();
+    }
 
-  @Test
-  public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
-    doQuickSuccessionNodeFailuresRecoveryTest();
-  }
+    @Test
+    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
+        doQuickSuccessionNodeFailuresRecoveryTest();
+    }
 }

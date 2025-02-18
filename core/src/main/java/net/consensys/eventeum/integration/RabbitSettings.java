@@ -24,32 +24,32 @@ import org.springframework.context.annotation.Configuration;
 /**
  * An encapsulation of Rabbit related properties.
  *
- * @author ioBuilders <tech@io.builders>
+ * @author ioBuilders tech@io.builders
  */
 @Configuration
 @Data
 @ConditionalOnProperty(name = "broadcaster.type", havingValue = "RABBIT")
 public class RabbitSettings {
-  @Value("${rabbitmq.exchange}")
-  private String exchange;
+    @Value("${rabbitmq.exchange}")
+    private String exchange;
 
-  @Value("${rabbitmq.blockNotification}")
-  private boolean blockNotification;
+    @Value("${rabbitmq.blockNotification}")
+    private boolean blockNotification;
 
-  @Value("${rabbitmq.routingKey.contractEvents}")
-  private String contractEventsRoutingKey;
+    @Value("${rabbitmq.routingKey.contractEvents}")
+    private String contractEventsRoutingKey;
 
-  @Value("${rabbitmq.routingKey.blockEvents}")
-  private String blockEventsRoutingKey;
+    @Value("${rabbitmq.routingKey.blockEvents}")
+    private String blockEventsRoutingKey;
 
-  @Value("${rabbitmq.routingKey.transactionEvents}")
-  private String transactionEventsRoutingKey;
+    @Value("${rabbitmq.routingKey.transactionEvents}")
+    private String transactionEventsRoutingKey;
 
-  @Value("${rabbitmq.routingKey.messageEvents}")
-  private String messageEventsRoutingKey;
+    @Value("${rabbitmq.routingKey.messageEvents}")
+    private String messageEventsRoutingKey;
 
-  @Bean
-  Jackson2JsonMessageConverter producerJackson2MessageConverter() {
-    return new Jackson2JsonMessageConverter();
-  }
+    @Bean
+    Jackson2JsonMessageConverter producerJackson2MessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
 }

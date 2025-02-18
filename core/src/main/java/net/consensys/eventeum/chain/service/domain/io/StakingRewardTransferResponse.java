@@ -1,6 +1,7 @@
 package net.consensys.eventeum.chain.service.domain.io;
 
 import java.math.BigInteger;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StakingRewardTransferResponse {
 
-  String account;
+    String account;
 
-  BigInteger amount;
+    BigInteger amount;
 }

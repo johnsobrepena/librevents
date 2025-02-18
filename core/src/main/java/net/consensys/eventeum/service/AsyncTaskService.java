@@ -21,13 +21,13 @@ import java.util.concurrent.Future;
 /**
  * An service that should execute a task in an Asynchronous manner.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 public interface AsyncTaskService {
 
-  void execute(String executorName, Runnable task);
+    void execute(String executorName, Runnable task);
 
-  CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task);
+    CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task);
 
-  <T> Future<T> submit(String executorName, Callable<T> task);
+    <T> Future<T> submit(String executorName, Callable<T> task);
 }

@@ -1,0 +1,5 @@
+rootProject.name = 'eventeum'
+
+include 'core'
+include 'server'
+include 'privacy-plugin'

@@ -28,22 +28,22 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class EventeumWebSocketService extends WebSocketService {
 
-  private final WebSocketClient webSocketClient;
+    private final WebSocketClient webSocketClient;
 
-  public EventeumWebSocketService(WebSocketClient webSocketClient, boolean includeRawResponses) {
-    super(webSocketClient, includeRawResponses);
+    public EventeumWebSocketService(WebSocketClient webSocketClient, boolean includeRawResponses) {
+        super(webSocketClient, includeRawResponses);
 
-    this.webSocketClient = webSocketClient;
-  }
-
-  @Override
-  void onWebSocketClose() {
-    try {
-      super.onWebSocketClose();
-    } catch (Throwable t) {
-      log.warn(
-          "Error when closing websocket, this is expected during a websocket reconnection (for now).",
-          t);
+        this.webSocketClient = webSocketClient;
     }
-  }
+
+    @Override
+    void onWebSocketClose() {
+        try {
+            super.onWebSocketClose();
+        } catch (Throwable t) {
+            log.warn(
+                    "Error when closing websocket, this is expected during a websocket reconnection (for now).",
+                    t);
+        }
+    }
 }

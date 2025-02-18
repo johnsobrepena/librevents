@@ -15,6 +15,7 @@
 package net.consensys.eventeum.chain.service.health;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+
 import net.consensys.eventeum.chain.service.BlockchainException;
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.health.strategy.ReconnectionStrategy;
@@ -28,39 +29,40 @@ import org.web3j.protocol.websocket.WebSocketClient;
 
 public class WebSocketHealthCheckService extends NodeHealthCheckService {
 
-  private WebSocketClient webSocketClient;
+    private WebSocketClient webSocketClient;
 
-  public WebSocketHealthCheckService(
-      Web3jService web3jService,
-      BlockchainService blockchainService,
-      BlockSubscriptionStrategy blockSubscription,
-      ReconnectionStrategy failureListener,
-      SubscriptionService subscriptionService,
-      EventeumValueMonitor valueMonitor,
-      EventStoreService eventStoreService,
-      Integer syncingThreshold,
-      ScheduledThreadPoolExecutor taskScheduler,
-      Long healthCheckPollInterval) {
-    super(
-        blockchainService,
-        blockSubscription,
-        failureListener,
-        subscriptionService,
-        valueMonitor,
-        eventStoreService,
-        syncingThreshold,
-        taskScheduler,
-        healthCheckPollInterval);
+    public WebSocketHealthCheckService(
+            Web3jService web3jService,
+            BlockchainService blockchainService,
+            BlockSubscriptionStrategy blockSubscription,
+            ReconnectionStrategy failureListener,
+            SubscriptionService subscriptionService,
+            EventeumValueMonitor valueMonitor,
+            EventStoreService eventStoreService,
+            Integer syncingThreshold,
+            ScheduledThreadPoolExecutor taskScheduler,
+            Long healthCheckPollInterval) {
+        super(
+                blockchainService,
+                blockSubscription,
+                failureListener,
+                subscriptionService,
+                valueMonitor,
+                eventStoreService,
+                syncingThreshold,
+                taskScheduler,
+                healthCheckPollInterval);
 
-    if (web3jService instanceof EventeumWebSocketService) {
-      this.webSocketClient = ((EventeumWebSocketService) web3jService).getWebSocketClient();
-    } else {
-      throw new BlockchainException("Non web socket service passed to WebSocketHealthCheckService");
+        if (web3jService instanceof EventeumWebSocketService) {
+            this.webSocketClient = ((EventeumWebSocketService) web3jService).getWebSocketClient();
+        } else {
+            throw new BlockchainException(
+                    "Non web socket service passed to WebSocketHealthCheckService");
+        }
     }
-  }
 
-  @Override
-  protected boolean isSubscribed() {
-    return super.isSubscribed() && webSocketClient.isOpen();
-  }
+    @Override
+    protected boolean isSubscribed() {
+        return super.isSubscribed() && webSocketClient.isOpen();
+    }
 }

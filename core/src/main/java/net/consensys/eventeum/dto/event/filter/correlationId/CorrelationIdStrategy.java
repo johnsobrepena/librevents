@@ -26,18 +26,18 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
  * <p>This is particularly useful when used with a Kafka broadcaster as you can configure the system
  * so that events with particular parameter values are always sent to the same partition.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Embeddable
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type",
-    visible = true)
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type",
+        visible = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CorrelationIdStrategy {
-  CorrelationIdType getType();
+    CorrelationIdType getType();
 
-  @JsonIgnore
-  String getCorrelationId(ContractEventDetails contractEvent);
+    @JsonIgnore
+    String getCorrelationId(ContractEventDetails contractEvent);
 }

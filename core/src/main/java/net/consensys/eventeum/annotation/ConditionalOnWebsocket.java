@@ -15,6 +15,7 @@
 package net.consensys.eventeum.annotation;
 
 import java.lang.annotation.*;
+
 import org.springframework.context.annotation.Conditional;
 
 /** Configuration annotation for a conditional element that depends on kafka being required */
@@ -24,5 +25,5 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnWebsocketCondition.class)
 public @interface ConditionalOnWebsocket {
 
-  boolean value() default true;
+    boolean value() default true;
 }

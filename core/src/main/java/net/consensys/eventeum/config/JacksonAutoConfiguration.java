@@ -29,23 +29,23 @@ import org.springframework.data.domain.Page;
 /**
  * Configures the jackson ObjectMapper bean.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @AutoConfiguration
 @ConditionalOnClass(ObjectMapper.class)
 public class JacksonAutoConfiguration {
 
-  @Bean
-  @ConditionalOnMissingBean(ObjectMapper.class)
-  public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.addMixIn(Page.class, PageMixIn.class);
+    @Bean
+    @ConditionalOnMissingBean(ObjectMapper.class)
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.addMixIn(Page.class, PageMixIn.class);
 
-    SimpleModule module = new SimpleModule();
-    module.addSerializer(NumberParameter.class, new NumberParameterSerializer());
-    mapper.registerModule(module);
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(NumberParameter.class, new NumberParameterSerializer());
+        mapper.registerModule(module);
 
-    return mapper;
-  }
+        return mapper;
+    }
 }

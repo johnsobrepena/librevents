@@ -2,6 +2,7 @@ package net.consensys.eventeum.chain.service.domain.io;
 
 import java.util.List;
 import java.util.Map;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransactionsResponse {
 
-  private List<TransactionResponse> transactions;
+    private List<TransactionResponse> transactions;
 
-  private Map<String, String> links;
+    private Map<String, String> links;
 }

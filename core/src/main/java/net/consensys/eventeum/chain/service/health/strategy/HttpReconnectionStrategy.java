@@ -24,18 +24,18 @@ import net.consensys.eventeum.service.SubscriptionService;
  *
  * <p>Note: All subscriptions are unregistered before being reregistered.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Slf4j
 public class HttpReconnectionStrategy extends ResubscribingReconnectionStrategy {
 
-  public HttpReconnectionStrategy(
-      SubscriptionService subscriptionService, BlockSubscriptionStrategy blockSubscription) {
-    super(subscriptionService, blockSubscription);
-  }
+    public HttpReconnectionStrategy(
+            SubscriptionService subscriptionService, BlockSubscriptionStrategy blockSubscription) {
+        super(subscriptionService, blockSubscription);
+    }
 
-  @Override
-  public void reconnect() {
-    // Do Nothing
-  }
+    @Override
+    public void reconnect() {
+        // Do Nothing
+    }
 }

@@ -28,15 +28,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "eventStore", url = "${eventStore.url}")
 public interface EventStoreClient {
 
-  @RequestMapping(method = RequestMethod.GET, value = "${eventStore.eventPath}")
-  Page<ContractEventDetails> getContractEvents(
-      @RequestParam(value = "page") int pageNo,
-      @RequestParam(value = "size") int pageSize,
-      @RequestParam(value = "sort") String sortAttribute,
-      @RequestParam(value = "dir") Sort.Direction sortDirection,
-      @RequestParam(value = "signature") String signature,
-      @RequestParam(value = "contractAddress") String contractAddress);
+    @RequestMapping(method = RequestMethod.GET, value = "${eventStore.eventPath}")
+    Page<ContractEventDetails> getContractEvents(
+            @RequestParam(value = "page") int pageNo,
+            @RequestParam(value = "size") int pageSize,
+            @RequestParam(value = "sort") String sortAttribute,
+            @RequestParam(value = "dir") Sort.Direction sortDirection,
+            @RequestParam(value = "signature") String signature,
+            @RequestParam(value = "contractAddress") String contractAddress);
 
-  @RequestMapping(method = RequestMethod.GET, value = "${eventStore.latestBlockPath}")
-  LatestBlock getLatestBlock(@RequestParam(value = "nodeName") String nodeName);
+    @RequestMapping(method = RequestMethod.GET, value = "${eventStore.latestBlockPath}")
+    LatestBlock getLatestBlock(@RequestParam(value = "nodeName") String nodeName);
 }

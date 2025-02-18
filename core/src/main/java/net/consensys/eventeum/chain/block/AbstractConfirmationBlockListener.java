@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.block;
 
 import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.chain.service.domain.Block;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
@@ -26,134 +27,135 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractConfirmationBlockListener<T extends TransactionBasedDetails>
-    extends SelfUnregisteringBlockListener {
+        extends SelfUnregisteringBlockListener {
 
-  private static final Logger LOG =
-      LoggerFactory.getLogger(AbstractConfirmationBlockListener.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(AbstractConfirmationBlockListener.class);
 
-  private final T blockchainEvent;
-  private final BlockchainService blockchainService;
-  private final BigInteger targetBlock;
-  private final BigInteger blocksToWaitForMissingTx;
-  private final BigInteger blocksToWait;
+    private final T blockchainEvent;
+    private final BlockchainService blockchainService;
+    private final BigInteger targetBlock;
+    private final BigInteger blocksToWaitForMissingTx;
+    private final BigInteger blocksToWait;
 
-  private final AtomicBoolean isInvalidated = new AtomicBoolean(false);
-  private final BigInteger numBlocksToWaitBeforeInvalidating;
-  private BigInteger missingTxBlockLimit;
-  private BigInteger currentNumBlocksToWaitBeforeInvalidating;
+    private final AtomicBoolean isInvalidated = new AtomicBoolean(false);
+    private final BigInteger numBlocksToWaitBeforeInvalidating;
+    private BigInteger missingTxBlockLimit;
+    private BigInteger currentNumBlocksToWaitBeforeInvalidating;
 
-  public AbstractConfirmationBlockListener(
-      T blockchainEvent,
-      BlockchainService blockchainService,
-      BlockSubscriptionStrategy blockSubscription,
-      Node node) {
-    super(blockSubscription);
-    this.blockchainEvent = blockchainEvent;
-    this.blockchainService = blockchainService;
+    public AbstractConfirmationBlockListener(
+            T blockchainEvent,
+            BlockchainService blockchainService,
+            BlockSubscriptionStrategy blockSubscription,
+            Node node) {
+        super(blockSubscription);
+        this.blockchainEvent = blockchainEvent;
+        this.blockchainService = blockchainService;
 
-    final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
-    this.blocksToWait = node.getBlocksToWaitForConfirmation();
-    this.targetBlock = currentBlock.add(blocksToWait);
-    this.blocksToWaitForMissingTx = node.getBlocksToWaitForMissingTx();
-    this.numBlocksToWaitBeforeInvalidating = node.getBlocksToWaitBeforeInvalidating();
-  }
-
-  @Override
-  public void onBlock(Block block) {
-    final TransactionReceipt receipt =
-        blockchainService.getTransactionReceipt(blockchainEvent.getTransactionHash());
-
-    if (receipt == null) {
-      // Tx has disappeared...we've probably forked
-      // Tx should be included in block on new fork soon
-      handleMissingTransaction(block);
-      return;
+        final BigInteger currentBlock = blockchainService.getCurrentBlockNumber();
+        this.blocksToWait = node.getBlocksToWaitForConfirmation();
+        this.targetBlock = currentBlock.add(blocksToWait);
+        this.blocksToWaitForMissingTx = node.getBlocksToWaitForMissingTx();
+        this.numBlocksToWaitBeforeInvalidating = node.getBlocksToWaitBeforeInvalidating();
     }
 
-    checkEventStatus(block, receipt);
-  }
+    @Override
+    public void onBlock(Block block) {
+        final TransactionReceipt receipt =
+                blockchainService.getTransactionReceipt(blockchainEvent.getTransactionHash());
 
-  protected abstract String getEventIdentifier(T blockchainEvent);
+        if (receipt == null) {
+            // Tx has disappeared...we've probably forked
+            // Tx should be included in block on new fork soon
+            handleMissingTransaction(block);
+            return;
+        }
 
-  protected abstract void setStatus(T blockchainEvent, String status);
-
-  protected abstract void broadcast(T blockchainEvent);
-
-  protected void checkEventStatus(Block block, TransactionReceipt receipt) {
-    if (isOrphaned(receipt)) {
-      processInvalidatedEvent(block);
-    } else if (block.getNumber().compareTo(targetBlock) >= 0) {
-      LOG.debug("Target block reached for event: {}", getEventIdentifier(blockchainEvent));
-      broadcastEventConfirmed();
-      unregister();
-    }
-  }
-
-  protected boolean isOrphaned(TransactionReceipt receipt) {
-    // If block hash is not as expected, this means that the transaction
-    // has been included in a block on a different fork of a longer chain
-    // and the original transaction is considered orphaned.
-    String orphanReason = null;
-
-    if (!receipt.getBlockHash().equals(blockchainEvent.getBlockHash())) {
-      orphanReason =
-          "Expected blockhash "
-              + blockchainEvent.getBlockHash()
-              + ", received "
-              + receipt.getBlockHash();
+        checkEventStatus(block, receipt);
     }
 
-    if (orphanReason != null) {
-      LOG.info("Orphan event detected: " + orphanReason);
-      return true;
+    protected abstract String getEventIdentifier(T blockchainEvent);
+
+    protected abstract void setStatus(T blockchainEvent, String status);
+
+    protected abstract void broadcast(T blockchainEvent);
+
+    protected void checkEventStatus(Block block, TransactionReceipt receipt) {
+        if (isOrphaned(receipt)) {
+            processInvalidatedEvent(block);
+        } else if (block.getNumber().compareTo(targetBlock) >= 0) {
+            LOG.debug("Target block reached for event: {}", getEventIdentifier(blockchainEvent));
+            broadcastEventConfirmed();
+            unregister();
+        }
     }
 
-    return false;
-  }
+    protected boolean isOrphaned(TransactionReceipt receipt) {
+        // If block hash is not as expected, this means that the transaction
+        // has been included in a block on a different fork of a longer chain
+        // and the original transaction is considered orphaned.
+        String orphanReason = null;
 
-  protected void broadcastEventInvalidated() {
-    setStatus(blockchainEvent, "INVALIDATED");
-    broadcastEvent(blockchainEvent);
-  }
+        if (!receipt.getBlockHash().equals(blockchainEvent.getBlockHash())) {
+            orphanReason =
+                    "Expected blockhash "
+                            + blockchainEvent.getBlockHash()
+                            + ", received "
+                            + receipt.getBlockHash();
+        }
 
-  protected void broadcastEventConfirmed() {
-    setStatus(blockchainEvent, "CONFIRMED");
-    broadcastEvent(blockchainEvent);
-  }
+        if (orphanReason != null) {
+            LOG.info("Orphan event detected: " + orphanReason);
+            return true;
+        }
 
-  protected void processInvalidatedEvent(Block block) {
-    processInvalidatedEvent(block.getNumber());
-  }
-
-  protected void processInvalidatedEvent(BigInteger blockNumber) {
-    if (currentNumBlocksToWaitBeforeInvalidating == null) {
-      currentNumBlocksToWaitBeforeInvalidating = blockNumber.add(numBlocksToWaitBeforeInvalidating);
-    } else if (blockNumber.compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
-      unRegisterEventListener();
+        return false;
     }
-  }
 
-  protected void handleMissingTransaction(Block block) {
-    if (missingTxBlockLimit == null) {
-      missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
-    } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
-      unRegisterEventListener();
+    protected void broadcastEventInvalidated() {
+        setStatus(blockchainEvent, "INVALIDATED");
+        broadcastEvent(blockchainEvent);
     }
-  }
 
-  protected void broadcastEvent(T event) {
-    if (!isInvalidated.get()) {
-      LOG.debug(
-          String.format(
-              "Sending confirmed event for %s event: %s",
-              event.getClass().getSimpleName(), getEventIdentifier(blockchainEvent)));
-      broadcast(event);
+    protected void broadcastEventConfirmed() {
+        setStatus(blockchainEvent, "CONFIRMED");
+        broadcastEvent(blockchainEvent);
     }
-  }
 
-  protected void unRegisterEventListener() {
-    broadcastEventInvalidated();
-    isInvalidated.set(true);
-    unregister();
-  }
+    protected void processInvalidatedEvent(Block block) {
+        processInvalidatedEvent(block.getNumber());
+    }
+
+    protected void processInvalidatedEvent(BigInteger blockNumber) {
+        if (currentNumBlocksToWaitBeforeInvalidating == null) {
+            currentNumBlocksToWaitBeforeInvalidating =
+                    blockNumber.add(numBlocksToWaitBeforeInvalidating);
+        } else if (blockNumber.compareTo(currentNumBlocksToWaitBeforeInvalidating) > 0) {
+            unRegisterEventListener();
+        }
+    }
+
+    protected void handleMissingTransaction(Block block) {
+        if (missingTxBlockLimit == null) {
+            missingTxBlockLimit = block.getNumber().add(blocksToWaitForMissingTx);
+        } else if (block.getNumber().compareTo(missingTxBlockLimit) > 0) {
+            unRegisterEventListener();
+        }
+    }
+
+    protected void broadcastEvent(T event) {
+        if (!isInvalidated.get()) {
+            LOG.debug(
+                    String.format(
+                            "Sending confirmed event for %s event: %s",
+                            event.getClass().getSimpleName(), getEventIdentifier(blockchainEvent)));
+            broadcast(event);
+        }
+    }
+
+    protected void unRegisterEventListener() {
+        broadcastEventInvalidated();
+        isInvalidated.set(true);
+        unregister();
+    }
 }

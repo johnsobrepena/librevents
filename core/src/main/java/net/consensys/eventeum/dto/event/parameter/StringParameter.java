@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 /**
  * A textual based EventParameter, represented by a String.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Data
 @Embeddable
@@ -30,12 +30,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StringParameter extends AbstractEventParameter<String> {
 
-  public StringParameter(String type, String value) {
-    super(type, value);
-  }
+    public StringParameter(String type, String value) {
+        super(type, value);
+    }
 
-  @Override
-  public String getValueString() {
-    return getValue();
-  }
+    @Override
+    public String getValueString() {
+        return getValue();
+    }
 }

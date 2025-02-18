@@ -22,35 +22,35 @@ import net.consensys.eventeum.dto.transaction.TransactionDetails;
 /**
  * An interface for a class that broadcasts ethereum blockchain details to the wider system.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 public interface BlockchainEventBroadcaster {
 
-  /**
-   * Broadcast details of a new block that has been mined.
-   *
-   * @param block
-   */
-  void broadcastNewBlock(BlockDetails block);
+    /**
+     * Broadcast details of a new block that has been mined.
+     *
+     * @param block
+     */
+    void broadcastNewBlock(BlockDetails block);
 
-  /**
-   * Broadcasts details of a new smart contract event that has been emitted from the blockchain.
-   *
-   * @param eventDetails
-   */
-  void broadcastContractEvent(ContractEventDetails eventDetails);
+    /**
+     * Broadcasts details of a new smart contract event that has been emitted from the blockchain.
+     *
+     * @param eventDetails
+     */
+    void broadcastContractEvent(ContractEventDetails eventDetails);
 
-  /**
-   * Broadcasts details of a monitored transaction that has been mined.
-   *
-   * @param transactionDetails
-   */
-  void broadcastTransaction(TransactionDetails transactionDetails);
+    /**
+     * Broadcasts details of a monitored transaction that has been mined.
+     *
+     * @param transactionDetails
+     */
+    void broadcastTransaction(TransactionDetails transactionDetails);
 
-  /**
-   * Broadcasts details of a message that has been emitted from the blockchain
-   *
-   * @param messageDetails
-   */
-  void broadcastMessage(MessageDetails messageDetails);
+    /**
+     * Broadcasts details of a message that has been emitted from the blockchain
+     *
+     * @param messageDetails
+     */
+    void broadcastMessage(MessageDetails messageDetails);
 }

@@ -14,36 +14,37 @@
 
 package net.consensys.eventeum.dto.event.filter;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.FetchType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * Represents contract event specification, to be used when registering a new filter.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Embeddable
 @Data
 @EqualsAndHashCode
 public class ContractEventSpecification implements Serializable {
 
-  private String eventName;
+    private String eventName;
 
-  @ElementCollection(fetch = FetchType.EAGER)
-  // See answer in
-  // https://stackoverflow.com/questions/51835604/jpa-elementcollection-within-embeddable-not-persisted
-  private List<ParameterDefinition> indexedParameterDefinitions = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    // See answer in
+    // https://stackoverflow.com/questions/51835604/jpa-elementcollection-within-embeddable-not-persisted
+    private List<ParameterDefinition> indexedParameterDefinitions = new ArrayList<>();
 
-  @ElementCollection(fetch = FetchType.EAGER)
-  private List<ParameterDefinition> nonIndexedParameterDefinitions = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<ParameterDefinition> nonIndexedParameterDefinitions = new ArrayList<>();
 
-  private String eventSignature;
+    private String eventSignature;
 
-  private String web3EventSmartContractClass;
+    private String web3EventSmartContractClass;
 }

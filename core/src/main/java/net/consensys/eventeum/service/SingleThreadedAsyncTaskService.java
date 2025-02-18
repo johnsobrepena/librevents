@@ -14,47 +14,49 @@
 
 package net.consensys.eventeum.service;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.stereotype.Component;
 
 /**
  * An async task service that utilises a single thread executor
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Component("asyncTaskService")
 public class SingleThreadedAsyncTaskService implements AsyncTaskService {
 
-  private Map<String, ExecutorService> executorServices = new HashMap<>();
+    private Map<String, ExecutorService> executorServices = new HashMap<>();
 
-  @Override
-  public void execute(String executorName, Runnable task) {
-    getOrCreateExecutor(executorName).execute(task);
-  }
-
-  @Override
-  public <T> Future<T> submit(String executorName, Callable<T> task) {
-    return getOrCreateExecutor(executorName).submit(task);
-  }
-
-  @Override
-  public CompletableFuture<Void> executeWithCompletableFuture(String executorName, Runnable task) {
-    return CompletableFuture.runAsync(task, getOrCreateExecutor(executorName));
-  }
-
-  private ExecutorService getOrCreateExecutor(String executorName) {
-    if (!executorServices.containsKey(executorName)) {
-      executorServices.put(executorName, buildExecutor(executorName));
+    @Override
+    public void execute(String executorName, Runnable task) {
+        getOrCreateExecutor(executorName).execute(task);
     }
 
-    return executorServices.get(executorName);
-  }
+    @Override
+    public <T> Future<T> submit(String executorName, Callable<T> task) {
+        return getOrCreateExecutor(executorName).submit(task);
+    }
 
-  protected ExecutorService buildExecutor(String executorName) {
-    return Executors.newSingleThreadExecutor(
-        new ThreadFactoryBuilder().setNameFormat(executorName + "-%d").build());
-  }
+    @Override
+    public CompletableFuture<Void> executeWithCompletableFuture(
+            String executorName, Runnable task) {
+        return CompletableFuture.runAsync(task, getOrCreateExecutor(executorName));
+    }
+
+    private ExecutorService getOrCreateExecutor(String executorName) {
+        if (!executorServices.containsKey(executorName)) {
+            executorServices.put(executorName, buildExecutor(executorName));
+        }
+
+        return executorServices.get(executorName);
+    }
+
+    protected ExecutorService buildExecutor(String executorName) {
+        return Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder().setNameFormat(executorName + "-%d").build());
+    }
 }

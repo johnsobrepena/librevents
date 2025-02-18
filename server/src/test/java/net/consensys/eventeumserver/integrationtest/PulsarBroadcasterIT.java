@@ -14,10 +14,11 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
@@ -41,116 +42,119 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(locations = "classpath:application-test-db-pulsar.properties")
 public class PulsarBroadcasterIT extends BroadcasterSmokeTest {
 
-  private static PulsarContainer pulsarContainer;
+    private static PulsarContainer pulsarContainer;
 
-  private PulsarClient client;
+    private PulsarClient client;
 
-  @Autowired private PulsarSettings settings;
+    @Autowired private PulsarSettings settings;
 
-  private BackgroundPulsarConsumer<BlockDetails> blockBackgroundConsumer;
+    private BackgroundPulsarConsumer<BlockDetails> blockBackgroundConsumer;
 
-  private BackgroundPulsarConsumer<ContractEventDetails> eventBackgroundConsumer;
+    private BackgroundPulsarConsumer<ContractEventDetails> eventBackgroundConsumer;
 
-  private BackgroundPulsarConsumer<TransactionDetails> transactionBackgroundConsumer;
+    private BackgroundPulsarConsumer<TransactionDetails> transactionBackgroundConsumer;
 
-  @BeforeAll
-  public static void setup() {
-    pulsarContainer = new PulsarContainer();
-    pulsarContainer.start();
+    @BeforeAll
+    public static void setup() {
+        pulsarContainer = new PulsarContainer();
+        pulsarContainer.start();
 
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.setProperty("PULSAR_URL", pulsarContainer.getPlainTextServiceUrl());
     }
 
-    System.setProperty("PULSAR_URL", pulsarContainer.getPlainTextServiceUrl());
-  }
+    @AfterAll
+    public static void tearDown() {
+        pulsarContainer.stop();
 
-  @AfterAll
-  public static void tearDown() {
-    pulsarContainer.stop();
-
-    System.clearProperty("PULSAR_URL");
-  }
-
-  @BeforeEach
-  public void configureConsumer() throws PulsarClientException {
-    client = PulsarClient.builder().serviceUrl(pulsarContainer.getPlainTextServiceUrl()).build();
-
-    blockBackgroundConsumer =
-        new BackgroundPulsarConsumer<>(
-            createConsumer(settings.getTopic().getBlockEvents()), BlockDetails.class);
-    blockBackgroundConsumer.start(block -> onBlockMessageReceived(block));
-
-    eventBackgroundConsumer =
-        new BackgroundPulsarConsumer<>(
-            createConsumer(settings.getTopic().getContractEvents()), ContractEventDetails.class);
-    eventBackgroundConsumer.start(event -> onContractEventMessageReceived(event));
-
-    transactionBackgroundConsumer =
-        new BackgroundPulsarConsumer<>(
-            createConsumer(settings.getTopic().getTransactionEvents()), TransactionDetails.class);
-    transactionBackgroundConsumer.start(event -> onTransactionMessageReceived(event));
-  }
-
-  @AfterEach
-  public void teardownConsumers() throws PulsarClientException {
-    blockBackgroundConsumer.stop();
-    eventBackgroundConsumer.stop();
-    client.close();
-  }
-
-  private Consumer<byte[]> createConsumer(String topic) throws PulsarClientException {
-    return client
-        .newConsumer()
-        .topic(topic)
-        .subscriptionName("test-" + topic)
-        .ackTimeout(10, TimeUnit.SECONDS)
-        .subscriptionType(SubscriptionType.Exclusive)
-        .subscribe();
-  }
-
-  private class BackgroundPulsarConsumer<T> {
-    private final Consumer<byte[]> pulsarConsumer;
-
-    private final Class<T> entityClass;
-
-    private final ExecutorService executerService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private boolean stopped;
-
-    private BackgroundPulsarConsumer(Consumer<byte[]> pulsarConsumer, Class<T> entityClass) {
-      this.pulsarConsumer = pulsarConsumer;
-      this.entityClass = entityClass;
-
-      executerService = Executors.newCachedThreadPool();
+        System.clearProperty("PULSAR_URL");
     }
 
-    public void start(java.util.function.Consumer<T> consumer) {
+    @BeforeEach
+    public void configureConsumer() throws PulsarClientException {
+        client =
+                PulsarClient.builder().serviceUrl(pulsarContainer.getPlainTextServiceUrl()).build();
 
-      executerService.execute(
-          () -> {
-            do {
-              try {
-                // Wait until a message is available
-                Message<byte[]> msg = pulsarConsumer.receive();
+        blockBackgroundConsumer =
+                new BackgroundPulsarConsumer<>(
+                        createConsumer(settings.getTopic().getBlockEvents()), BlockDetails.class);
+        blockBackgroundConsumer.start(block -> onBlockMessageReceived(block));
 
-                consumer.accept(objectMapper.readValue(msg.getValue(), entityClass));
+        eventBackgroundConsumer =
+                new BackgroundPulsarConsumer<>(
+                        createConsumer(settings.getTopic().getContractEvents()),
+                        ContractEventDetails.class);
+        eventBackgroundConsumer.start(event -> onContractEventMessageReceived(event));
 
-                // Acknowledge processing of the message so that it can be deleted
-                pulsarConsumer.acknowledge(msg);
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            } while (!stopped);
-          });
+        transactionBackgroundConsumer =
+                new BackgroundPulsarConsumer<>(
+                        createConsumer(settings.getTopic().getTransactionEvents()),
+                        TransactionDetails.class);
+        transactionBackgroundConsumer.start(event -> onTransactionMessageReceived(event));
     }
 
-    public void stop() throws PulsarClientException {
-      stopped = true;
-
-      pulsarConsumer.close();
+    @AfterEach
+    public void teardownConsumers() throws PulsarClientException {
+        blockBackgroundConsumer.stop();
+        eventBackgroundConsumer.stop();
+        client.close();
     }
-  }
+
+    private Consumer<byte[]> createConsumer(String topic) throws PulsarClientException {
+        return client.newConsumer()
+                .topic(topic)
+                .subscriptionName("test-" + topic)
+                .ackTimeout(10, TimeUnit.SECONDS)
+                .subscriptionType(SubscriptionType.Exclusive)
+                .subscribe();
+    }
+
+    private class BackgroundPulsarConsumer<T> {
+        private final Consumer<byte[]> pulsarConsumer;
+
+        private final Class<T> entityClass;
+
+        private final ExecutorService executerService;
+        private final ObjectMapper objectMapper = new ObjectMapper();
+        private boolean stopped;
+
+        private BackgroundPulsarConsumer(Consumer<byte[]> pulsarConsumer, Class<T> entityClass) {
+            this.pulsarConsumer = pulsarConsumer;
+            this.entityClass = entityClass;
+
+            executerService = Executors.newCachedThreadPool();
+        }
+
+        public void start(java.util.function.Consumer<T> consumer) {
+
+            executerService.execute(
+                    () -> {
+                        do {
+                            try {
+                                // Wait until a message is available
+                                Message<byte[]> msg = pulsarConsumer.receive();
+
+                                consumer.accept(
+                                        objectMapper.readValue(msg.getValue(), entityClass));
+
+                                // Acknowledge processing of the message so that it can be deleted
+                                pulsarConsumer.acknowledge(msg);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        } while (!stopped);
+                    });
+        }
+
+        public void stop() throws PulsarClientException {
+            stopped = true;
+
+            pulsarConsumer.close();
+        }
+    }
 }

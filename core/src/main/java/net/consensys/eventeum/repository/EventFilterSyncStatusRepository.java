@@ -23,9 +23,9 @@ import org.springframework.stereotype.Repository;
 /**
  * Spring repository for storing active EventFilterSyncStatus entries in DB.
  *
- * @author Craig Williams <craigwilliams84@gmail.com>
+ * @author Craig Williams craigwilliams84@gmail.com
  */
 @Repository
 @ConditionalOnMissingBean(ContractEventFilterRepositoryFactory.class)
 public interface EventFilterSyncStatusRepository
-    extends CrudRepository<EventFilterSyncStatus, String> {}
+        extends CrudRepository<EventFilterSyncStatus, String> {}

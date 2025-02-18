@@ -18,6 +18,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import net.consensys.eventeum.dto.event.parameter.ArrayParameter;
 import net.consensys.eventeum.dto.event.parameter.EventParameter;
 import net.consensys.eventeum.dto.event.parameter.NumberParameter;
@@ -32,99 +33,106 @@ import org.web3j.utils.Numeric;
 /**
  * Converts Web3j Type objects into Eventeum EventParameter objects.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Component("web3jEventParameterConverter")
 public class Web3jEventParameterConverter implements EventParameterConverter<Type> {
 
-  private Map<String, EventParameterConverter<Type>> typeConverters =
-      new HashMap<String, EventParameterConverter<Type>>();
+    private Map<String, EventParameterConverter<Type>> typeConverters =
+            new HashMap<String, EventParameterConverter<Type>>();
 
-  private EventeumSettings settings;
+    private EventeumSettings settings;
 
-  public Web3jEventParameterConverter(EventeumSettings settings) {
-    typeConverters.put(
-        "address",
-        (type) ->
-            new StringParameter(type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
+    public Web3jEventParameterConverter(EventeumSettings settings) {
+        typeConverters.put(
+                "address",
+                (type) ->
+                        new StringParameter(
+                                type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
 
-    registerNumberConverters("uint", 8, 256);
-    registerNumberConverters("int", 8, 256);
-    registerBytesConverters("bytes", 1, 32);
+        registerNumberConverters("uint", 8, 256);
+        registerNumberConverters("int", 8, 256);
+        registerBytesConverters("bytes", 1, 32);
 
-    typeConverters.put("byte", (type) -> convertBytesType(type));
-    typeConverters.put(
-        "bool",
-        (type) ->
-            new NumberParameter(
-                type.getTypeAsString(),
-                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
-    typeConverters.put(
-        "string",
-        (type) -> new StringParameter(type.getTypeAsString(), trim((String) type.getValue())));
-    typeConverters.put(
-        "bytes",
-        (type) ->
-            new StringParameter(
-                type.getTypeAsString(), Numeric.toHexString((byte[]) type.getValue())));
+        typeConverters.put("byte", (type) -> convertBytesType(type));
+        typeConverters.put(
+                "bool",
+                (type) ->
+                        new NumberParameter(
+                                type.getTypeAsString(),
+                                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
+        typeConverters.put(
+                "string",
+                (type) ->
+                        new StringParameter(
+                                type.getTypeAsString(), trim((String) type.getValue())));
+        typeConverters.put(
+                "bytes",
+                (type) ->
+                        new StringParameter(
+                                type.getTypeAsString(),
+                                Numeric.toHexString((byte[]) type.getValue())));
 
-    this.settings = settings;
-  }
-
-  @Override
-  public EventParameter convert(Type toConvert) {
-    final EventParameterConverter<Type> typeConverter =
-        typeConverters.get(toConvert.getTypeAsString().toLowerCase());
-
-    if (typeConverter == null) {
-      // Type might be an array, in which case the type will be the array type class
-      if (toConvert instanceof Array) {
-        final Array<?> theArray = (Array<?>) toConvert;
-        return convertArray(theArray);
-      }
-
-      throw new TypeConversionException("Unsupported type: " + toConvert.getTypeAsString());
+        this.settings = settings;
     }
 
-    return typeConverter.convert(toConvert);
-  }
+    @Override
+    public EventParameter convert(Type toConvert) {
+        final EventParameterConverter<Type> typeConverter =
+                typeConverters.get(toConvert.getTypeAsString().toLowerCase());
 
-  private void registerNumberConverters(String prefix, int increment, int max) {
-    for (int i = increment; i <= max; i = i + increment) {
-      typeConverters.put(
-          prefix + i,
-          (type) -> new NumberParameter(type.getTypeAsString(), (BigInteger) type.getValue()));
-    }
-  }
+        if (typeConverter == null) {
+            // Type might be an array, in which case the type will be the array type class
+            if (toConvert instanceof Array) {
+                final Array<?> theArray = (Array<?>) toConvert;
+                return convertArray(theArray);
+            }
 
-  private void registerBytesConverters(String prefix, int increment, int max) {
-    for (int i = increment; i <= max; i = i + increment) {
-      typeConverters.put(prefix + i, (type) -> convertBytesType(type));
-    }
-  }
+            throw new TypeConversionException("Unsupported type: " + toConvert.getTypeAsString());
+        }
 
-  private EventParameter<?> convertArray(Array<?> toConvert) {
-    final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
-
-    toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
-
-    return new ArrayParameter(
-        toConvert.getTypeAsString().replace("[]", "").toLowerCase(),
-        toConvert.getComponentType(),
-        convertedArray);
-  }
-
-  private EventParameter convertBytesType(Type bytesType) {
-    if (settings.isBytesToAscii()) {
-      return new StringParameter(
-          bytesType.getTypeAsString(), trim(new String((byte[]) bytesType.getValue())));
+        return typeConverter.convert(toConvert);
     }
 
-    return new StringParameter(
-        bytesType.getTypeAsString(), trim(Numeric.toHexString((byte[]) bytesType.getValue())));
-  }
+    private void registerNumberConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(
+                    prefix + i,
+                    (type) ->
+                            new NumberParameter(
+                                    type.getTypeAsString(), (BigInteger) type.getValue()));
+        }
+    }
 
-  private String trim(String toTrim) {
-    return toTrim.trim().replace("\\u0000", "");
-  }
+    private void registerBytesConverters(String prefix, int increment, int max) {
+        for (int i = increment; i <= max; i = i + increment) {
+            typeConverters.put(prefix + i, (type) -> convertBytesType(type));
+        }
+    }
+
+    private EventParameter<?> convertArray(Array<?> toConvert) {
+        final ArrayList<EventParameter<?>> convertedArray = new ArrayList<>();
+
+        toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
+
+        return new ArrayParameter(
+                toConvert.getTypeAsString().replace("[]", "").toLowerCase(),
+                toConvert.getComponentType(),
+                convertedArray);
+    }
+
+    private EventParameter convertBytesType(Type bytesType) {
+        if (settings.isBytesToAscii()) {
+            return new StringParameter(
+                    bytesType.getTypeAsString(), trim(new String((byte[]) bytesType.getValue())));
+        }
+
+        return new StringParameter(
+                bytesType.getTypeAsString(),
+                trim(Numeric.toHexString((byte[]) bytesType.getValue())));
+    }
+
+    private String trim(String toTrim) {
+        return toTrim.trim().replace("\\u0000", "");
+    }
 }

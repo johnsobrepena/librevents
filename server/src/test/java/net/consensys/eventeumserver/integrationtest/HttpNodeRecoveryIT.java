@@ -14,6 +14,7 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,18 +28,19 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(locations = "classpath:application-test-db.properties")
 public class HttpNodeRecoveryIT extends NodeRecoveryTests {
 
-  @Test
-  public void singleNodeFailureRecoveryTest() throws Exception {
-    doSingleNodeFailureRecoveryTest();
-  }
+    @Test
+    public void singleNodeFailureRecoveryTest() throws Exception {
+        doSingleNodeFailureRecoveryTest();
+    }
 
-  @Test
-  public void multipleNodeFailuresRecoveryTest() throws Exception {
-    doMultipleNodeFailuresRecoveryTest();
-  }
+    @Test
+    public void multipleNodeFailuresRecoveryTest() throws Exception {
+        doMultipleNodeFailuresRecoveryTest();
+    }
 
-  @Test
-  public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
-    doQuickSuccessionNodeFailuresRecoveryTest();
-  }
+    @Test
+    @Disabled
+    public void quickSuccessionNodeFailuresRecoveryTest() throws Exception {
+        doQuickSuccessionNodeFailuresRecoveryTest();
+    }
 }

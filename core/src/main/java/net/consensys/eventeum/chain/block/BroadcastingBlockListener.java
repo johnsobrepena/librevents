@@ -25,19 +25,19 @@ import org.springframework.stereotype.Component;
 /**
  * A block listener that broadcasts the block details via the configured broadcaster.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Component
 @AllArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BroadcastingBlockListener implements BlockListener {
 
-  private BlockchainEventBroadcaster eventBroadcaster;
+    private BlockchainEventBroadcaster eventBroadcaster;
 
-  private BlockDetailsFactory blockDetailsFactory;
+    private BlockDetailsFactory blockDetailsFactory;
 
-  @Override
-  public void onBlock(Block block) {
-    eventBroadcaster.broadcastNewBlock(blockDetailsFactory.createBlockDetails(block));
-  }
+    @Override
+    public void onBlock(Block block) {
+        eventBroadcaster.broadcastNewBlock(blockDetailsFactory.createBlockDetails(block));
+    }
 }

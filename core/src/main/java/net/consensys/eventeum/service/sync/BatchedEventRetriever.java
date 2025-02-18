@@ -17,6 +17,7 @@ package net.consensys.eventeum.service.sync;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Consumer;
+
 import lombok.AllArgsConstructor;
 import net.consensys.eventeum.chain.service.container.ChainServicesContainer;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
@@ -28,37 +29,37 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class BatchedEventRetriever implements EventRetriever {
 
-  private ChainServicesContainer servicesContainer;
+    private ChainServicesContainer servicesContainer;
 
-  private EventeumSettings settings;
+    private EventeumSettings settings;
 
-  @Override
-  public void retrieveEvents(
-      ContractEventFilter eventFilter,
-      BigInteger startBlock,
-      BigInteger endBlock,
-      Consumer<List<ContractEventDetails>> eventConsumer) {
+    @Override
+    public void retrieveEvents(
+            ContractEventFilter eventFilter,
+            BigInteger startBlock,
+            BigInteger endBlock,
+            Consumer<List<ContractEventDetails>> eventConsumer) {
 
-    BigInteger batchStartBlock = startBlock;
+        BigInteger batchStartBlock = startBlock;
 
-    while (batchStartBlock.compareTo(endBlock) < 0) {
-      BigInteger batchEndBlock;
+        while (batchStartBlock.compareTo(endBlock) < 0) {
+            BigInteger batchEndBlock;
 
-      if (batchStartBlock.add(settings.getSyncBatchSize()).compareTo(endBlock) >= 0) {
-        batchEndBlock = endBlock;
-      } else {
-        batchEndBlock = batchStartBlock.add(settings.getSyncBatchSize());
-      }
+            if (batchStartBlock.add(settings.getSyncBatchSize()).compareTo(endBlock) >= 0) {
+                batchEndBlock = endBlock;
+            } else {
+                batchEndBlock = batchStartBlock.add(settings.getSyncBatchSize());
+            }
 
-      final List<ContractEventDetails> events =
-          servicesContainer
-              .getNodeServices(eventFilter.getNode())
-              .getBlockchainService()
-              .retrieveEvents(eventFilter, batchStartBlock, batchEndBlock);
+            final List<ContractEventDetails> events =
+                    servicesContainer
+                            .getNodeServices(eventFilter.getNode())
+                            .getBlockchainService()
+                            .retrieveEvents(eventFilter, batchStartBlock, batchEndBlock);
 
-      eventConsumer.accept(events);
+            eventConsumer.accept(events);
 
-      batchStartBlock = batchEndBlock.add(BigInteger.ONE);
+            batchStartBlock = batchEndBlock.add(BigInteger.ONE);
+        }
     }
-  }
 }

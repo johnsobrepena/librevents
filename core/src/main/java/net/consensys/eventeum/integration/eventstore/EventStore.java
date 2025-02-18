@@ -16,6 +16,7 @@ package net.consensys.eventeum.integration.eventstore;
 
 import java.math.BigInteger;
 import java.util.Optional;
+
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.model.LatestBlock;
@@ -26,22 +27,22 @@ import org.springframework.data.domain.PageRequest;
  * Interface for integrating with an event store, in order to obtain events for a specified
  * signature.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 public interface EventStore {
-  Page<ContractEventDetails> getContractEventsForSignature(
-      String eventSignature, String contractAddress, PageRequest pagination);
+    Page<ContractEventDetails> getContractEventsForSignature(
+            String eventSignature, String contractAddress, PageRequest pagination);
 
-  Optional<LatestBlock> getLatestBlockForNode(String nodeName);
+    Optional<LatestBlock> getLatestBlockForNode(String nodeName);
 
-  boolean isPagingZeroIndexed();
+    boolean isPagingZeroIndexed();
 
-  Optional<MessageDetails> getLatestMessageFromTopic(String nodeName, String topicId);
+    Optional<MessageDetails> getLatestMessageFromTopic(String nodeName, String topicId);
 
-  Optional<ContractEventDetails> getContractEvent(
-      String eventSignature,
-      String contractAddress,
-      String blockHash,
-      String transactionHash,
-      BigInteger logIndex);
+    Optional<ContractEventDetails> getContractEvent(
+            String eventSignature,
+            String contractAddress,
+            String blockHash,
+            String transactionHash,
+            BigInteger logIndex);
 }

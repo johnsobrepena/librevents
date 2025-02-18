@@ -19,8 +19,8 @@ import net.consensys.eventeum.dto.message.EventeumMessage;
 /**
  * A consumer for internal Eventeum messages sent from a different instance.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 public interface EventeumInternalEventConsumer {
-  void onMessage(EventeumMessage<?> message);
+    void onMessage(EventeumMessage<?> message);
 }

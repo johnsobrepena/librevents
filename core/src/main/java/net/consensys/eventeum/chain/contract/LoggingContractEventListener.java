@@ -22,20 +22,20 @@ import org.springframework.stereotype.Component;
 /**
  * A contract event listener that logs the contract event details.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Slf4j
 @Component
 public class LoggingContractEventListener extends BaseContractEventListener {
 
-  public LoggingContractEventListener(EventStore eventStore) {
-    super(eventStore);
-  }
-
-  @Override
-  public void onEvent(ContractEventDetails eventDetails) {
-    if (isExistingEvent(eventDetails)) {
-      log.info("Contract event fired: {}", eventDetails.getName());
+    public LoggingContractEventListener(EventStore eventStore) {
+        super(eventStore);
     }
-  }
+
+    @Override
+    public void onEvent(ContractEventDetails eventDetails) {
+        if (isExistingEvent(eventDetails)) {
+            log.info("Contract event fired: {}", eventDetails.getName());
+        }
+    }
 }

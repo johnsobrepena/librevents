@@ -14,14 +14,15 @@
 
 package net.consensys.eventeum.chain.service.strategy;
 
-import io.reactivex.disposables.Disposable;
-import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import io.reactivex.disposables.Disposable;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.service.block.BlockNumberService;
@@ -36,144 +37,147 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 @Slf4j
 public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubscriptionStrategy {
 
-  protected static final String BLOCK_EXECUTOR_NAME = "BLOCK";
-  protected final Web3j web3j;
-  protected final String nodeName;
-  protected final String nodeType;
-  protected final AsyncTaskService asyncService;
-  protected final BlockNumberService blockNumberService;
-  protected final AtomicLong lastBlockNumberProcessed = new AtomicLong(0);
-  protected final Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
-  private final AtomicBoolean error = new AtomicBoolean(false);
-  protected Disposable blockSubscription;
+    protected static final String BLOCK_EXECUTOR_NAME = "BLOCK";
+    protected final Web3j web3j;
+    protected final String nodeName;
+    protected final String nodeType;
+    protected final AsyncTaskService asyncService;
+    protected final BlockNumberService blockNumberService;
+    protected final AtomicLong lastBlockNumberProcessed = new AtomicLong(0);
+    protected final Collection<BlockListener> blockListeners = new ConcurrentLinkedQueue<>();
+    private final AtomicBoolean error = new AtomicBoolean(false);
+    protected Disposable blockSubscription;
 
-  public AbstractBlockSubscriptionStrategy(
-      Web3j web3j,
-      String nodeName,
-      String nodeType,
-      AsyncTaskService asyncService,
-      BlockNumberService blockNumberService) {
-    this.web3j = web3j;
-    this.nodeName = nodeName;
-    this.nodeType = nodeType;
-    this.asyncService = asyncService;
-    this.blockNumberService = blockNumberService;
-  }
-
-  @Override
-  public String getNodeName() {
-    return nodeName;
-  }
-
-  @PreDestroy
-  @Override
-  public void unsubscribe() {
-    try {
-      if (blockSubscription != null) {
-        blockSubscription.dispose();
-      }
-    } finally {
-      blockSubscription = null;
-      error.set(false);
+    public AbstractBlockSubscriptionStrategy(
+            Web3j web3j,
+            String nodeName,
+            String nodeType,
+            AsyncTaskService asyncService,
+            BlockNumberService blockNumberService) {
+        this.web3j = web3j;
+        this.nodeName = nodeName;
+        this.nodeType = nodeType;
+        this.asyncService = asyncService;
+        this.blockNumberService = blockNumberService;
     }
-  }
 
-  @Override
-  public void addBlockListener(BlockListener blockListener) {
-    blockListeners.add(blockListener);
-  }
-
-  @Override
-  public void removeBlockListener(BlockListener blockListener) {
-    blockListeners.remove(blockListener);
-  }
-
-  public boolean isSubscribed() {
-    return blockSubscription != null && !blockSubscription.isDisposed();
-  }
-
-  protected void triggerListeners(T blockObject) {
-    final Block eventeumBlock = convertToEventeumBlock(blockObject);
-
-    if (eventeumBlock != null) {
-      triggerListeners(eventeumBlock);
+    @Override
+    public String getNodeName() {
+        return nodeName;
     }
-  }
 
-  protected void triggerListeners(Block eventeumBlock) {
-    asyncService.execute(
-        ExecutorNameFactory.build(BLOCK_EXECUTOR_NAME, eventeumBlock.getNodeName()),
-        () -> {
-          final BigInteger expectedBlock =
-              BigInteger.valueOf(lastBlockNumberProcessed.get()).add(BigInteger.ONE);
-
-          // A lower or equal block is valid due to forking or replaying on failure
-          if (lastBlockNumberProcessed.get() > 0
-              && eventeumBlock.getNumber().compareTo(expectedBlock) > 0) {
-
-            final int missingBlocks = eventeumBlock.getNumber().subtract(expectedBlock).intValue();
-
-            log.warn(
-                "Missing {} blocks.  Expected {}, got {}.  Catching up...",
-                missingBlocks,
-                expectedBlock,
-                eventeumBlock.getNumber());
-
-            // Get each missing block and process before continuing with block that was passed into
-            // method
-            for (int i = 0; i < missingBlocks; i++) {
-              final BigInteger nextBlock = expectedBlock.add(BigInteger.valueOf(i));
-
-              try {
-                log.warn("Retrieving block number {}...", nextBlock);
-                final Block block = getBlockWithNumber(nextBlock);
-
-                blockListeners.forEach(listener -> triggerListener(listener, block));
-                updateLastBlockProcessed(block);
-              } catch (Throwable t) {
-                onError(blockSubscription, t);
-              }
+    @PreDestroy
+    @Override
+    public void unsubscribe() {
+        try {
+            if (blockSubscription != null) {
+                blockSubscription.dispose();
             }
-          }
-
-          blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
-          updateLastBlockProcessed(eventeumBlock);
-        });
-  }
-
-  protected void triggerListener(BlockListener listener, Block block) {
-    if (!error.get()) {
-      try {
-        listener.onBlock(block);
-      } catch (Throwable t) {
-        onError(blockSubscription, t);
-      }
+        } finally {
+            blockSubscription = null;
+            error.set(false);
+        }
     }
-  }
 
-  protected BigInteger getStartBlock() {
-    return blockNumberService.getStartBlockForNode(nodeName);
-  }
+    @Override
+    public void addBlockListener(BlockListener blockListener) {
+        blockListeners.add(blockListener);
+    }
 
-  protected void onError(Disposable disposable, Throwable error) {
-    log.error(
-        "There was an error when processing a block, disposing blocksubscription (will be reinitialised)",
-        error);
+    @Override
+    public void removeBlockListener(BlockListener blockListener) {
+        blockListeners.remove(blockListener);
+    }
 
-    this.error.set(true);
-    disposable.dispose();
-  }
+    public boolean isSubscribed() {
+        return blockSubscription != null && !blockSubscription.isDisposed();
+    }
 
-  private void updateLastBlockProcessed(Block block) {
-    lastBlockNumberProcessed.set(block.getNumber().longValue());
-  }
+    protected void triggerListeners(T blockObject) {
+        final Block eventeumBlock = convertToEventeumBlock(blockObject);
 
-  private Block getBlockWithNumber(BigInteger blockNumber) throws IOException {
-    final EthBlock ethBlock =
-        web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNumber), true).send();
+        if (eventeumBlock != null) {
+            triggerListeners(eventeumBlock);
+        }
+    }
 
-    return new Web3jBlock(ethBlock.getBlock(), nodeName);
-  }
+    protected void triggerListeners(Block eventeumBlock) {
+        asyncService.execute(
+                ExecutorNameFactory.build(BLOCK_EXECUTOR_NAME, eventeumBlock.getNodeName()),
+                () -> {
+                    final BigInteger expectedBlock =
+                            BigInteger.valueOf(lastBlockNumberProcessed.get()).add(BigInteger.ONE);
 
-  abstract Block convertToEventeumBlock(T blockObject);
+                    // A lower or equal block is valid due to forking or replaying on failure
+                    if (lastBlockNumberProcessed.get() > 0
+                            && eventeumBlock.getNumber().compareTo(expectedBlock) > 0) {
+
+                        final int missingBlocks =
+                                eventeumBlock.getNumber().subtract(expectedBlock).intValue();
+
+                        log.warn(
+                                "Missing {} blocks.  Expected {}, got {}.  Catching up...",
+                                missingBlocks,
+                                expectedBlock,
+                                eventeumBlock.getNumber());
+
+                        // Get each missing block and process before continuing with block that was
+                        // passed into
+                        // method
+                        for (int i = 0; i < missingBlocks; i++) {
+                            final BigInteger nextBlock = expectedBlock.add(BigInteger.valueOf(i));
+
+                            try {
+                                log.warn("Retrieving block number {}...", nextBlock);
+                                final Block block = getBlockWithNumber(nextBlock);
+
+                                blockListeners.forEach(
+                                        listener -> triggerListener(listener, block));
+                                updateLastBlockProcessed(block);
+                            } catch (Throwable t) {
+                                onError(blockSubscription, t);
+                            }
+                        }
+                    }
+
+                    blockListeners.forEach(listener -> triggerListener(listener, eventeumBlock));
+                    updateLastBlockProcessed(eventeumBlock);
+                });
+    }
+
+    protected void triggerListener(BlockListener listener, Block block) {
+        if (!error.get()) {
+            try {
+                listener.onBlock(block);
+            } catch (Throwable t) {
+                onError(blockSubscription, t);
+            }
+        }
+    }
+
+    protected BigInteger getStartBlock() {
+        return blockNumberService.getStartBlockForNode(nodeName);
+    }
+
+    protected void onError(Disposable disposable, Throwable error) {
+        log.error(
+                "There was an error when processing a block, disposing blocksubscription (will be reinitialised)",
+                error);
+
+        this.error.set(true);
+        disposable.dispose();
+    }
+
+    private void updateLastBlockProcessed(Block block) {
+        lastBlockNumberProcessed.set(block.getNumber().longValue());
+    }
+
+    private Block getBlockWithNumber(BigInteger blockNumber) throws IOException {
+        final EthBlock ethBlock =
+                web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(blockNumber), true).send();
+
+        return new Web3jBlock(ethBlock.getBlock(), nodeName);
+    }
+
+    abstract Block convertToEventeumBlock(T blockObject);
 }

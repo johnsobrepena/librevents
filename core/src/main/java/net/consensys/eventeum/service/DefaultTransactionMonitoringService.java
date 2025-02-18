@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.TransactionMonitoringBlockListener;
@@ -39,144 +40,146 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultTransactionMonitoringService implements TransactionMonitoringService {
 
-  private ChainServicesContainer chainServices;
+    private ChainServicesContainer chainServices;
 
-  private BlockchainEventBroadcaster broadcaster;
+    private BlockchainEventBroadcaster broadcaster;
 
-  private EventeumEventBroadcaster eventeumEventBroadcaster;
+    private EventeumEventBroadcaster eventeumEventBroadcaster;
 
-  private TransactionDetailsFactory transactionDetailsFactory;
+    private TransactionDetailsFactory transactionDetailsFactory;
 
-  private TransactionMonitoringSpecRepository transactionMonitoringRepo;
+    private TransactionMonitoringSpecRepository transactionMonitoringRepo;
 
-  private TransactionMonitoringBlockListener monitoringBlockListener;
+    private TransactionMonitoringBlockListener monitoringBlockListener;
 
-  private TransactionMatchingCriteriaFactory matchingCriteriaFactory;
+    private TransactionMatchingCriteriaFactory matchingCriteriaFactory;
 
-  private BlockCache blockCache;
+    private BlockCache blockCache;
 
-  private Map<String, TransactionMonitor> transactionMonitors = new HashMap<>();
+    private Map<String, TransactionMonitor> transactionMonitors = new HashMap<>();
 
-  @Autowired
-  public DefaultTransactionMonitoringService(
-      ChainServicesContainer chainServices,
-      BlockchainEventBroadcaster broadcaster,
-      EventeumEventBroadcaster eventeumEventBroadcaster,
-      TransactionDetailsFactory transactionDetailsFactory,
-      TransactionMonitoringSpecRepository transactionMonitoringRepo,
-      TransactionMonitoringBlockListener monitoringBlockListener,
-      TransactionMatchingCriteriaFactory matchingCriteriaFactory,
-      BlockCache blockCache) {
-    this.chainServices = chainServices;
-    this.broadcaster = broadcaster;
-    this.eventeumEventBroadcaster = eventeumEventBroadcaster;
-    this.transactionDetailsFactory = transactionDetailsFactory;
-    this.transactionMonitoringRepo = transactionMonitoringRepo;
-    this.monitoringBlockListener = monitoringBlockListener;
-    this.matchingCriteriaFactory = matchingCriteriaFactory;
-    this.blockCache = blockCache;
-  }
-
-  @Override
-  public void registerTransactionsToMonitor(TransactionMonitoringSpec spec) {
-    registerTransactionsToMonitor(spec, true);
-  }
-
-  @Override
-  public void registerTransactionsToMonitor(TransactionMonitoringSpec spec, boolean broadcast) {
-    if (isTransactionSpecRegistered(spec)) {
-      log.info("Already registered transaction monitoring spec with id: " + spec.getId());
-      return;
+    @Autowired
+    public DefaultTransactionMonitoringService(
+            ChainServicesContainer chainServices,
+            BlockchainEventBroadcaster broadcaster,
+            EventeumEventBroadcaster eventeumEventBroadcaster,
+            TransactionDetailsFactory transactionDetailsFactory,
+            TransactionMonitoringSpecRepository transactionMonitoringRepo,
+            TransactionMonitoringBlockListener monitoringBlockListener,
+            TransactionMatchingCriteriaFactory matchingCriteriaFactory,
+            BlockCache blockCache) {
+        this.chainServices = chainServices;
+        this.broadcaster = broadcaster;
+        this.eventeumEventBroadcaster = eventeumEventBroadcaster;
+        this.transactionDetailsFactory = transactionDetailsFactory;
+        this.transactionMonitoringRepo = transactionMonitoringRepo;
+        this.monitoringBlockListener = monitoringBlockListener;
+        this.matchingCriteriaFactory = matchingCriteriaFactory;
+        this.blockCache = blockCache;
     }
 
-    registerTransactionMonitoring(spec);
-    saveTransactionMonitoringSpec(spec);
-
-    if (broadcast) {
-      eventeumEventBroadcaster.broadcastTransactionMonitorAdded(spec);
-    }
-  }
-
-  @Override
-  public void stopMonitoringTransactions(String monitorId) throws NotFoundException {
-    stopMonitoringTransactions(monitorId, true);
-  }
-
-  @Override
-  public void stopMonitoringTransactions(String monitorId, boolean broadcast)
-      throws NotFoundException {
-
-    final TransactionMonitor transactionMonitor = getTransactionMonitor(monitorId);
-
-    if (transactionMonitor == null) {
-      throw new NotFoundException("No monitored transaction with id: " + monitorId);
+    @Override
+    public void registerTransactionsToMonitor(TransactionMonitoringSpec spec) {
+        registerTransactionsToMonitor(spec, true);
     }
 
-    removeTransactionMonitorMatchinCriteria(transactionMonitor);
-    deleteTransactionMonitor(monitorId);
+    @Override
+    public void registerTransactionsToMonitor(TransactionMonitoringSpec spec, boolean broadcast) {
+        if (isTransactionSpecRegistered(spec)) {
+            log.info("Already registered transaction monitoring spec with id: " + spec.getId());
+            return;
+        }
 
-    if (broadcast) {
-      eventeumEventBroadcaster.broadcastTransactionMonitorRemoved(transactionMonitor.getSpec());
+        registerTransactionMonitoring(spec);
+        saveTransactionMonitoringSpec(spec);
+
+        if (broadcast) {
+            eventeumEventBroadcaster.broadcastTransactionMonitorAdded(spec);
+        }
     }
-  }
 
-  @Override
-  public List<TransactionMonitoringSpec> listTransactionMonitorings() {
-    return transactionMonitors.values().stream()
-        .map(TransactionMonitor::getSpec)
-        .collect(Collectors.toList());
-  }
-
-  private void removeTransactionMonitorMatchinCriteria(TransactionMonitor transactionMonitor) {
-    monitoringBlockListener.removeMatchingCriteria(transactionMonitor.getMatchingCriteria());
-  }
-
-  private void deleteTransactionMonitor(String monitorId) {
-    transactionMonitors.remove(monitorId);
-
-    transactionMonitoringRepo.deleteById(monitorId);
-  }
-
-  private TransactionMonitor getTransactionMonitor(String monitorId) {
-    return transactionMonitors.get(monitorId);
-  }
-
-  private void registerTransactionMonitoring(TransactionMonitoringSpec spec) {
-
-    final TransactionMatchingCriteria matchingCriteria = matchingCriteriaFactory.build(spec);
-    final NodeServices nodeServices = chainServices.getNodeServices(spec.getNodeName());
-
-    monitoringBlockListener.addMatchingCriteria(matchingCriteria);
-    //        switch (NodeType.valueOf(nodeServices.getNodeType())) {
-    //            case NORMAL:
-    //                break;
-    //            case MIRROR:
-    //
-    // nodeServices.getHederaService().subscribeToTopic(spec.getTransactionIdentifierValue());
-    //                break;
-    //        }
-
-    transactionMonitors.put(spec.getId(), new TransactionMonitor(spec, matchingCriteria));
-  }
-
-  private TransactionMonitoringSpec saveTransactionMonitoringSpec(TransactionMonitoringSpec spec) {
-    return transactionMonitoringRepo.save(spec);
-  }
-
-  private boolean isTransactionSpecRegistered(TransactionMonitoringSpec spec) {
-    return transactionMonitors.containsKey(spec.getId());
-  }
-
-  @Data
-  private class TransactionMonitor {
-    TransactionMonitoringSpec spec;
-
-    TransactionMatchingCriteria matchingCriteria;
-
-    public TransactionMonitor(
-        TransactionMonitoringSpec spec, TransactionMatchingCriteria matchingCriteria) {
-      this.spec = spec;
-      this.matchingCriteria = matchingCriteria;
+    @Override
+    public void stopMonitoringTransactions(String monitorId) throws NotFoundException {
+        stopMonitoringTransactions(monitorId, true);
     }
-  }
+
+    @Override
+    public void stopMonitoringTransactions(String monitorId, boolean broadcast)
+            throws NotFoundException {
+
+        final TransactionMonitor transactionMonitor = getTransactionMonitor(monitorId);
+
+        if (transactionMonitor == null) {
+            throw new NotFoundException("No monitored transaction with id: " + monitorId);
+        }
+
+        removeTransactionMonitorMatchinCriteria(transactionMonitor);
+        deleteTransactionMonitor(monitorId);
+
+        if (broadcast) {
+            eventeumEventBroadcaster.broadcastTransactionMonitorRemoved(
+                    transactionMonitor.getSpec());
+        }
+    }
+
+    @Override
+    public List<TransactionMonitoringSpec> listTransactionMonitorings() {
+        return transactionMonitors.values().stream()
+                .map(TransactionMonitor::getSpec)
+                .collect(Collectors.toList());
+    }
+
+    private void removeTransactionMonitorMatchinCriteria(TransactionMonitor transactionMonitor) {
+        monitoringBlockListener.removeMatchingCriteria(transactionMonitor.getMatchingCriteria());
+    }
+
+    private void deleteTransactionMonitor(String monitorId) {
+        transactionMonitors.remove(monitorId);
+
+        transactionMonitoringRepo.deleteById(monitorId);
+    }
+
+    private TransactionMonitor getTransactionMonitor(String monitorId) {
+        return transactionMonitors.get(monitorId);
+    }
+
+    private void registerTransactionMonitoring(TransactionMonitoringSpec spec) {
+
+        final TransactionMatchingCriteria matchingCriteria = matchingCriteriaFactory.build(spec);
+        final NodeServices nodeServices = chainServices.getNodeServices(spec.getNodeName());
+
+        monitoringBlockListener.addMatchingCriteria(matchingCriteria);
+        //        switch (NodeType.valueOf(nodeServices.getNodeType())) {
+        //            case NORMAL:
+        //                break;
+        //            case MIRROR:
+        //
+        // nodeServices.getHederaService().subscribeToTopic(spec.getTransactionIdentifierValue());
+        //                break;
+        //        }
+
+        transactionMonitors.put(spec.getId(), new TransactionMonitor(spec, matchingCriteria));
+    }
+
+    private TransactionMonitoringSpec saveTransactionMonitoringSpec(
+            TransactionMonitoringSpec spec) {
+        return transactionMonitoringRepo.save(spec);
+    }
+
+    private boolean isTransactionSpecRegistered(TransactionMonitoringSpec spec) {
+        return transactionMonitors.containsKey(spec.getId());
+    }
+
+    @Data
+    private class TransactionMonitor {
+        TransactionMonitoringSpec spec;
+
+        TransactionMatchingCriteria matchingCriteria;
+
+        public TransactionMonitor(
+                TransactionMonitoringSpec spec, TransactionMatchingCriteria matchingCriteria) {
+            this.spec = spec;
+            this.matchingCriteria = matchingCriteria;
+        }
+    }
 }

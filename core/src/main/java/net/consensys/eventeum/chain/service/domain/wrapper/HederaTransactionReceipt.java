@@ -17,6 +17,7 @@ package net.consensys.eventeum.chain.service.domain.wrapper;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+
 import lombok.Data;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
@@ -25,35 +26,35 @@ import net.consensys.eventeum.chain.service.domain.io.ContractResultResponse;
 /**
  * A TransactionReceipt that is constructed from a Web3j transaction receipt.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Data
 public class HederaTransactionReceipt implements TransactionReceipt {
 
-  private String transactionHash;
-  private BigInteger transactionIndex;
-  private String blockHash;
-  private BigInteger blockNumber;
-  private BigInteger cumulativeGasUsed;
-  private BigInteger gasUsed;
-  private String contractAddress;
-  private String root = "";
-  private String from;
-  private String to;
-  private List<Log> logs = Collections.emptyList();
-  private String logsBloom = "";
-  private String status;
-  private String revertReason;
+    private String transactionHash;
+    private BigInteger transactionIndex;
+    private String blockHash;
+    private BigInteger blockNumber;
+    private BigInteger cumulativeGasUsed;
+    private BigInteger gasUsed;
+    private String contractAddress;
+    private String root = "";
+    private String from;
+    private String to;
+    private List<Log> logs = Collections.emptyList();
+    private String logsBloom = "";
+    private String status;
+    private String revertReason;
 
-  public HederaTransactionReceipt(ContractResultResponse response) {
-    this.transactionHash = response.getHash();
-    this.transactionIndex = response.getTransactionIndex();
-    this.blockHash = response.getBlockHash();
-    this.cumulativeGasUsed = response.getBlockGasUsed();
-    this.gasUsed = response.getGasUsed();
-    this.contractAddress = response.getContractId();
-    this.from = response.getFrom();
-    this.to = response.getTo();
-    this.status = response.getStatus();
-  }
+    public HederaTransactionReceipt(ContractResultResponse response) {
+        this.transactionHash = response.getHash();
+        this.transactionIndex = response.getTransactionIndex();
+        this.blockHash = response.getBlockHash();
+        this.cumulativeGasUsed = response.getBlockGasUsed();
+        this.gasUsed = response.getGasUsed();
+        this.contractAddress = response.getContractId();
+        this.from = response.getFrom();
+        this.to = response.getTo();
+        this.status = response.getStatus();
+    }
 }

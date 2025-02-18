@@ -14,11 +14,9 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.math.BigInteger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigInteger;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.ContractEventStatus;
@@ -32,6 +30,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -39,42 +40,42 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class HttpBroadcasterIT extends BaseIntegrationTest {
 
-  private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = new ObjectMapper();
 
-  @Test
-  public void testBroadcastBlock() throws Exception {
-    StubHttpConsumer consumer = new StubHttpConsumer();
-    consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
+    @Test
+    public void testBroadcastBlock() throws Exception {
+        StubHttpConsumer consumer = new StubHttpConsumer();
+        consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
 
-    triggerBlocks(1);
-    waitForBlockMessages(1);
+        triggerBlocks(1);
+        waitForBlockMessages(1);
 
-    consumer.stop();
+        consumer.stop();
 
-    BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
-    assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
-    assertNotNull(blockDetails.getHash());
-    assertNotNull(blockDetails.getTimestamp());
-  }
+        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
+        assertNotNull(blockDetails.getHash());
+        assertNotNull(blockDetails.getTimestamp());
+    }
 
-  @Test
-  public void testBroadcastContractEvent() throws Exception {
-    StubHttpConsumer consumer = new StubHttpConsumer();
-    consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
+    @Test
+    public void testBroadcastContractEvent() throws Exception {
+        StubHttpConsumer consumer = new StubHttpConsumer();
+        consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
 
-    final EventEmitter emitter = deployEventEmitterContract();
+        final EventEmitter emitter = deployEventEmitterContract();
 
-    final ContractEventFilter registeredFilter =
-        registerDummyEventFilter(emitter.getContractAddress());
-    emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
+        final ContractEventFilter registeredFilter =
+                registerDummyEventFilter(emitter.getContractAddress());
+        emitter.emitEvent(stringToBytes("BytesValue"), BigInteger.TEN, "StringValue").send();
 
-    waitForContractEventMessages(1);
+        waitForContractEventMessages(1);
 
-    consumer.stop();
+        consumer.stop();
 
-    assertEquals(1, getBroadcastContractEvents().size());
+        assertEquals(1, getBroadcastContractEvents().size());
 
-    final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
-    verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
-  }
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
+    }
 }

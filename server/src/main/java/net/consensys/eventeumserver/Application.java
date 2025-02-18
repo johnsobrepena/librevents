@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 @SpringBootApplication(exclude = RabbitAutoConfiguration.class)
 public class Application {
 
-  public static void main(String[] args) {
-    SpringApplication.run(Application.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 }

@@ -14,9 +14,10 @@
 
 package net.consensys.eventeum.dto.event.parameter;
 
+import java.util.ArrayList;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Embeddable;
-import java.util.ArrayList;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -25,43 +26,43 @@ import lombok.NoArgsConstructor;
  * An array EventParameter, backed by an ArrayList. Its ArrayList rather than List as ArrayList
  * implements Serializable.
  *
- * @author Craig Williams <craig.williams@consensys.net>
+ * @author Craig Williams craig.williams@consensys.net
  */
 @Data
 @Embeddable
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ArrayParameter<T extends EventParameter<?>>
-    extends AbstractEventParameter<ArrayList<T>> {
+        extends AbstractEventParameter<ArrayList<T>> {
 
-  @JsonIgnore private String stringRepresentation;
+    @JsonIgnore private String stringRepresentation;
 
-  public ArrayParameter(String entryType, Class<T> arrayParameterType, ArrayList<T> value) {
-    super(entryType + "[]", value);
+    public ArrayParameter(String entryType, Class<T> arrayParameterType, ArrayList<T> value) {
+        super(entryType + "[]", value);
 
-    initStringRepresentation();
-  }
+        initStringRepresentation();
+    }
 
-  @Override
-  public String getValueString() {
-    return stringRepresentation;
-  }
+    @Override
+    public String getValueString() {
+        return stringRepresentation;
+    }
 
-  private void initStringRepresentation() {
-    final StringBuilder builder = new StringBuilder("[");
+    private void initStringRepresentation() {
+        final StringBuilder builder = new StringBuilder("[");
 
-    getValue()
-        .forEach(
-            param -> {
-              builder.append("\"");
-              builder.append(param.getValueString());
-              builder.append("\"");
-              builder.append(",");
-            });
+        getValue()
+                .forEach(
+                        param -> {
+                            builder.append("\"");
+                            builder.append(param.getValueString());
+                            builder.append("\"");
+                            builder.append(",");
+                        });
 
-    builder.deleteCharAt(builder.length() - 1);
-    builder.append("]");
+        builder.deleteCharAt(builder.length() - 1);
+        builder.append("]");
 
-    stringRepresentation = builder.toString();
-  }
+        stringRepresentation = builder.toString();
+    }
 }

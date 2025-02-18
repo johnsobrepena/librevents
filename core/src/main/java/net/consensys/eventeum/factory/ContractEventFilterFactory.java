@@ -15,9 +15,10 @@
 package net.consensys.eventeum.factory;
 
 import java.util.List;
+
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 
 public interface ContractEventFilterFactory {
 
-  List<ContractEventFilter> build();
+    List<ContractEventFilter> build();
 }

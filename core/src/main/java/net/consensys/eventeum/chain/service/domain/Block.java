@@ -19,50 +19,50 @@ import java.util.List;
 
 public interface Block {
 
-  BigInteger getNumber();
+    BigInteger getNumber();
 
-  String getHash();
+    String getHash();
 
-  String getParentHash();
+    String getParentHash();
 
-  BigInteger getNonce();
+    BigInteger getNonce();
 
-  String getSha3Uncles();
+    String getSha3Uncles();
 
-  String getLogsBloom();
+    String getLogsBloom();
 
-  String getTransactionsRoot();
+    String getTransactionsRoot();
 
-  String getStateRoot();
+    String getStateRoot();
 
-  String getReceiptsRoot();
+    String getReceiptsRoot();
 
-  String getAuthor();
+    String getAuthor();
 
-  String getMiner();
+    String getMiner();
 
-  String getMixHash();
+    String getMixHash();
 
-  BigInteger getDifficulty();
+    BigInteger getDifficulty();
 
-  BigInteger getTotalDifficulty();
+    BigInteger getTotalDifficulty();
 
-  String getExtraData();
+    String getExtraData();
 
-  BigInteger getSize();
+    BigInteger getSize();
 
-  BigInteger getGasLimit();
+    BigInteger getGasLimit();
 
-  BigInteger getGasUsed();
+    BigInteger getGasUsed();
 
-  BigInteger getTimestamp();
+    BigInteger getTimestamp();
 
-  List<Transaction> getTransactions();
+    List<Transaction> getTransactions();
 
-  List<String> getUncles();
+    List<String> getUncles();
 
-  List<String> getSealFields();
+    List<String> getSealFields();
 
-  // Eventeum specific
-  String getNodeName();
+    // Eventeum specific
+    String getNodeName();
 }
