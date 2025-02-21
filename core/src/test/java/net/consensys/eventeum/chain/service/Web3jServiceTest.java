@@ -45,7 +45,7 @@ import org.web3j.protocol.core.methods.response.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class Web3jServiceTest {
+class Web3jServiceTest {
 
     private static final String BLOCK_HASH =
             "0xc0e07697167c58f2a173df45f5c9b2c46ca0941cdf0bf79616d53dc92f62aebd";
@@ -72,7 +72,7 @@ public class Web3jServiceTest {
         EventBlockManagementService mockBlockManagement = mock(EventBlockManagementService.class);
 
         // Wire up getBlockNumber
-        final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
+        final Request mockRequest = mock(Request.class);
         final EthBlockNumber blockNumber = new EthBlockNumber();
         blockNumber.setResult("0x0");
         when(mockRequest.send()).thenReturn(blockNumber);
@@ -91,7 +91,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testRegisterEventListener() throws IOException {
+    void testRegisterEventListener() throws IOException {
 
         final ContractEventDetails eventDetails = doRegisterEventListenerAndTrigger();
 
@@ -99,7 +99,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testEventPassedToListenerIsCorrect() throws IOException {
+    void testEventPassedToListenerIsCorrect() throws IOException {
 
         final ContractEventDetails eventDetails = doRegisterEventListenerAndTrigger();
 
@@ -107,7 +107,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetClientVersionHappyPath() throws IOException {
+    void testGetClientVersionHappyPath() throws IOException {
         final Request<?, Web3ClientVersion> mockRequest = mock(Request.class);
         final Web3ClientVersion mockClientVersion = mock(Web3ClientVersion.class);
 
@@ -119,7 +119,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetClientVersionIOException() throws IOException {
+    void testGetClientVersionIOException() throws IOException {
         final Request<?, Web3ClientVersion> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
@@ -129,7 +129,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetTransactionReceiptHappyPath() throws IOException {
+    void testGetTransactionReceiptHappyPath() throws IOException {
         final Request<?, EthGetTransactionReceipt> mockRequest = mock(Request.class);
         final EthGetTransactionReceipt mockGetTxReceipt = mock(EthGetTransactionReceipt.class);
         final org.web3j.protocol.core.methods.response.TransactionReceipt mockTxReceipt =
@@ -145,7 +145,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetTransactionReceiptIOException() throws IOException {
+    void testGetTransactionReceiptIOException() throws IOException {
         final Request<?, EthGetTransactionReceipt> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
@@ -156,7 +156,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetCurrentBlockNumberHappyPath() throws IOException {
+    void testGetCurrentBlockNumberHappyPath() throws IOException {
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
         final EthBlockNumber mockBlockNumber = mock(EthBlockNumber.class);
 
@@ -168,7 +168,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetCurrentBlockNumberIOException() throws IOException {
+    void testGetCurrentBlockNumberIOException() throws IOException {
         final Request<?, EthBlockNumber> mockRequest = mock(Request.class);
 
         when(mockRequest.send()).thenThrow(new IOException());
@@ -178,7 +178,7 @@ public class Web3jServiceTest {
     }
 
     @Test
-    public void testGetRevertReason() throws IOException {
+    void testGetRevertReason() throws IOException {
         final Request<?, EthCall> mockRequest = mock(Request.class);
         final EthCall ethCall = mock(EthCall.class);
 

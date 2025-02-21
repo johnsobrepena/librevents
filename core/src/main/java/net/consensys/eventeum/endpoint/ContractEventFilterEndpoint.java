@@ -42,7 +42,7 @@ public class ContractEventFilterEndpoint {
      * @param eventFilter the event filter to add
      * @param response the http response
      */
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
     public AddEventFilterResponse addEventFilter(
             @RequestBody ContractEventFilter eventFilter, HttpServletResponse response) {
 
@@ -58,7 +58,7 @@ public class ContractEventFilterEndpoint {
      *
      * @param response the http response
      */
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public List<ContractEventFilter> listEventFilters(HttpServletResponse response) {
         List<ContractEventFilter> registeredFilters = filterService.listContractEventFilters();
         response.setStatus(HttpServletResponse.SC_OK);
@@ -72,7 +72,7 @@ public class ContractEventFilterEndpoint {
      * @param filterId the filterId to delete
      * @param response the http response
      */
-    @RequestMapping(value = "/{filterId}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{filterId}")
     public void removeEventFilter(@PathVariable String filterId, HttpServletResponse response) {
 
         try {

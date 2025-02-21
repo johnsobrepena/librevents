@@ -19,10 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import net.consensys.eventeum.chain.block.BlockListener;
 import net.consensys.eventeum.chain.config.EventFilterConfiguration;
 import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
-import net.consensys.eventeum.chain.service.BlockchainService;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
@@ -39,11 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ChainBootstrapperTest {
-
-    private final List<BlockListener> mockBlockListeners =
-            Arrays.asList(mock(BlockListener.class), mock(BlockListener.class));
-    @Mock private BlockchainService mockBlockchainService;
+class ChainBootstrapperTest {
     @Mock private EventFilterConfiguration mockConfig;
     @Mock private SubscriptionService mockSubscriptionService;
     @Mock private TransactionMonitoringService mockTransactionMonitoringService;
@@ -67,7 +61,7 @@ public class ChainBootstrapperTest {
     }
 
     @Test
-    public void testThatEventFiltersAreRegistered() throws Exception {
+    void testThatEventFiltersAreRegistered() {
         final List<ContractEventFilter> mockConfiguredFilters =
                 Arrays.asList(mock(ContractEventFilter.class), mock(ContractEventFilter.class));
         final List<ContractEventFilter> mockFilterFactoryFilters =
@@ -89,7 +83,7 @@ public class ChainBootstrapperTest {
     }
 
     @Test
-    public void testThatAlreadyExistingEventFiltersAreRemoved() throws Exception {
+    void testThatAlreadyExistingEventFiltersAreRemoved() {
         ContractEventFilter contractEventFilter = new ContractEventFilter();
         contractEventFilter.setId("id1");
 
@@ -119,7 +113,7 @@ public class ChainBootstrapperTest {
     }
 
     @Test
-    public void testThatTransactionsMonitorsAreRegistered() throws Exception {
+    void testThatTransactionsMonitorsAreRegistered() {
 
         final List<TransactionMonitoringSpec> mockMonitorSpecs =
                 Arrays.asList(
@@ -137,7 +131,7 @@ public class ChainBootstrapperTest {
     }
 
     @Test
-    public void testThatContractTransactionFiltersAreRegistered() throws Exception {
+    void testThatContractTransactionFiltersAreRegistered() {
 
         final List<TransactionMonitoringSpec> mockConfiguredFilters =
                 Arrays.asList(
@@ -155,7 +149,7 @@ public class ChainBootstrapperTest {
                 .registerTransactionsToMonitor(mockConfiguredFilters.get(1), true);
     }
 
-    private void doBootstrap() throws Exception {
+    private void doBootstrap() {
         underTest.onApplicationEvent(null);
     }
 }

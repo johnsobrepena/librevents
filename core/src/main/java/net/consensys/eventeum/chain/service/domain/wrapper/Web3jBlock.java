@@ -58,7 +58,7 @@ public class Web3jBlock implements Block {
     private String nodeName;
 
     public Web3jBlock(EthBlock.Block web3jBlock, String nodeName) {
-        final ModelMapper modelMapper = ModelMapperFactory.getInstance().getModelMapper();
+        final ModelMapper modelMapper = ModelMapperFactory.getModelMapper();
 
         modelMapper.map(web3jBlock, this);
 

@@ -14,20 +14,19 @@
 
 package net.consensys.eventeum.integration.broadcast.blockchain;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.*;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.RabbitSettings;
 import net.consensys.eventeum.utils.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 /**
  * A RabbitBlockChainEventBroadcaster that broadcasts the events to a RabbitMQ exchange.
  *
- * <p>The routing key for each message will defined by the routingKeyPrefix configured, plus
+ * <p>The routing key for each message will be defined by the routingKeyPrefix configured, plus
  * filterId for new contract events.
  *
  * <p>The exchange and routingKeyPrefix can be configured via the rabbitmq.exchange and
@@ -35,13 +34,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  *
  * @author ioBuilders technical team tech@io.builders
  */
+@Slf4j
 public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcaster {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(RabbitBlockChainEventBroadcaster.class);
-
-    private RabbitTemplate rabbitTemplate;
-    private RabbitSettings rabbitSettings;
+    private final RabbitTemplate rabbitTemplate;
+    private final RabbitSettings rabbitSettings;
 
     public RabbitBlockChainEventBroadcaster(
             RabbitTemplate rabbitTemplate, RabbitSettings rabbitSettings) {
@@ -57,12 +54,11 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                 String.format("%s", this.rabbitSettings.getBlockEventsRoutingKey()),
                 message);
 
-        LOG.info(
-                String.format(
-                        "New block sent: [%s] to exchange [%s] with routing key [%s]",
-                        JSON.stringify(message),
-                        this.rabbitSettings.getExchange(),
-                        this.rabbitSettings.getBlockEventsRoutingKey()));
+        log.info(
+                "New block sent: [{}] to exchange [{}] with routing key [{}]",
+                JSON.stringify(message),
+                this.rabbitSettings.getExchange(),
+                this.rabbitSettings.getBlockEventsRoutingKey());
     }
 
     @Override
@@ -77,13 +73,12 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                         eventDetails.getFilterId()),
                 message);
 
-        LOG.info(
-                String.format(
-                        "New contract event sent: [%s] to exchange [%s] with routing key [%s.%s]",
-                        JSON.stringify(message),
-                        this.rabbitSettings.getExchange(),
-                        this.rabbitSettings.getContractEventsRoutingKey(),
-                        eventDetails.getFilterId()));
+        log.info(
+                "New contract event sent: [{}] to exchange [{}] with routing key [{}.{}]",
+                JSON.stringify(message),
+                this.rabbitSettings.getExchange(),
+                this.rabbitSettings.getContractEventsRoutingKey(),
+                eventDetails.getFilterId());
     }
 
     @Override
@@ -98,13 +93,12 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                         transactionDetails.getHash()),
                 message);
 
-        LOG.info(
-                String.format(
-                        "New transaction event sent: [%s] to exchange [%s] with routing key [%s.%s]",
-                        JSON.stringify(message),
-                        this.rabbitSettings.getExchange(),
-                        this.rabbitSettings.getTransactionEventsRoutingKey(),
-                        transactionDetails.getHash()));
+        log.info(
+                "New transaction event sent: [{}] to exchange [{}] with routing key [{}.{}]",
+                JSON.stringify(message),
+                this.rabbitSettings.getExchange(),
+                this.rabbitSettings.getTransactionEventsRoutingKey(),
+                transactionDetails.getHash());
     }
 
     @Override
@@ -118,13 +112,12 @@ public class RabbitBlockChainEventBroadcaster implements BlockchainEventBroadcas
                         messageDetails.getTopicId()),
                 message);
 
-        LOG.info(
-                String.format(
-                        "New message event sent: [%s] to exchange [%s] with routing key [%s.%s]",
-                        JSON.stringify(message),
-                        this.rabbitSettings.getExchange(),
-                        this.rabbitSettings.getMessageEventsRoutingKey(),
-                        messageDetails.getTopicId()));
+        log.info(
+                "New message event sent: [{}] to exchange [{}] with routing key [{}.{}]",
+                JSON.stringify(message),
+                this.rabbitSettings.getExchange(),
+                this.rabbitSettings.getMessageEventsRoutingKey(),
+                messageDetails.getTopicId());
     }
 
     protected EventeumMessage<BlockDetails> createBlockEventMessage(BlockDetails blockDetails) {

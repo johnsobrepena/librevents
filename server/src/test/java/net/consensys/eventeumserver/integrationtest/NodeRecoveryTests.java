@@ -90,7 +90,7 @@ public class NodeRecoveryTests extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails secondEventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails secondEventDetails = getBroadcastContractEvents().getFirst();
 
         verifyDummyEventDetails(
                 registeredFilter,

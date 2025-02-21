@@ -43,7 +43,7 @@ public class HttpBroadcasterIT extends BaseIntegrationTest {
     private ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    public void testBroadcastBlock() throws Exception {
+    void testBroadcastBlock() throws Exception {
         StubHttpConsumer consumer = new StubHttpConsumer();
         consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
 
@@ -52,14 +52,14 @@ public class HttpBroadcasterIT extends BaseIntegrationTest {
 
         consumer.stop();
 
-        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        BlockDetails blockDetails = getBroadcastBlockMessages().getFirst();
         assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
         assertNotNull(blockDetails.getHash());
         assertNotNull(blockDetails.getTimestamp());
     }
 
     @Test
-    public void testBroadcastContractEvent() throws Exception {
+    void testBroadcastContractEvent() throws Exception {
         StubHttpConsumer consumer = new StubHttpConsumer();
         consumer.start(getBroadcastContractEvents(), getBroadcastBlockMessages());
 
@@ -75,7 +75,7 @@ public class HttpBroadcasterIT extends BaseIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
 }

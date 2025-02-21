@@ -47,7 +47,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
 
     // Contract Event Filters
     @Test
-    public void testRegisterEventFilterSavesFilterInDb() {
+    void testRegisterEventFilterSavesFilterInDb() {
         final ContractEventFilter registeredFilter =
                 registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
@@ -57,7 +57,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
+    void testRegisterEventFilterBroadcastsAddedMessage() throws InterruptedException {
         final ContractEventFilter registeredFilter =
                 registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
@@ -65,14 +65,14 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
         assertEquals(1, getBroadcastFilterEventMessages().size());
 
         final EventeumMessage<ContractEventFilter> broadcastMessage =
-                getBroadcastFilterEventMessages().get(0);
+                getBroadcastFilterEventMessages().getFirst();
 
         assertEquals(true, broadcastMessage instanceof ContractEventFilterAdded);
         assertEquals(registeredFilter, broadcastMessage.getDetails());
     }
 
     @Test
-    public void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
+    void testRegisterEventFilterReturnsCreatedIdWhenNotSet() {
         final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
         filter.setId(null);
 
@@ -84,7 +84,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testListEventFilters() {
+    void testListEventFilters() {
         final ContractEventFilter filter = createDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
         registerEventFilter(filter);
@@ -95,7 +95,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testRegisterEventFilterReturnsCorrectId() {
+    void testRegisterEventFilterReturnsCorrectId() {
         final ContractEventFilter registeredFilter =
                 registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
@@ -103,7 +103,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testUnregisterNonExistentFilter() {
+    void testUnregisterNonExistentFilter() {
         try {
             unregisterEventFilter("NonExistent");
         } catch (HttpClientErrorException e) {
@@ -112,7 +112,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testUnregisterEventFilterDeletesFilterInDb() throws InterruptedException {
+    void testUnregisterEventFilterDeletesFilterInDb() throws InterruptedException {
         final ContractEventFilter registeredFilter =
                 registerDummyEventFilter(FAKE_CONTRACT_ADDRESS);
 
@@ -128,7 +128,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
+    void testUnregisterEventFilterBroadcastsRemovedMessage() throws InterruptedException {
         final ContractEventFilter registeredFilter = doRegisterAndUnregister(FAKE_CONTRACT_ADDRESS);
 
         waitForBroadcast();
@@ -144,7 +144,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     // Transaction Monitoring
 
     @Test
-    public void testRegisterTransactionMonitorSavesInDb() {
+    void testRegisterTransactionMonitorSavesInDb() {
         doTestRegisterTransactionMonitorSavesInDb(generateTxHash());
     }
 
@@ -165,7 +165,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
+    void testRegisterTransactionMonitorBroadcastsAddedMessage() throws InterruptedException {
         final String txHash = generateTxHash();
 
         TransactionMonitoringSpec monitorSpec =
@@ -177,14 +177,14 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
         assertEquals(1, getBroadcastTransactionEventMessages().size());
 
         final EventeumMessage<TransactionMonitoringSpec> broadcastMessage =
-                getBroadcastTransactionEventMessages().get(0);
+                getBroadcastTransactionEventMessages().getFirst();
 
         assertEquals(true, broadcastMessage instanceof TransactionMonitorAdded);
         assertEquals(txHash, broadcastMessage.getDetails().getTransactionIdentifierValue());
     }
 
     @Test
-    public void testUnregisterNonExistentTransactionMonitor() {
+    void testUnregisterNonExistentTransactionMonitor() {
         try {
             unregisterTransactionMonitor("NonExistent");
         } catch (HttpClientErrorException e) {
@@ -193,7 +193,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testUnregisterTransactionMonitorDeletesInDb() {
+    void testUnregisterTransactionMonitorDeletesInDb() {
         final String monitorId = doTestRegisterTransactionMonitorSavesInDb(generateTxHash());
 
         unregisterTransactionMonitor(monitorId);
@@ -202,8 +202,7 @@ public class RegistrationIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testUnregisterTransactionMonitorBroadcastsRemovedMessage()
-            throws InterruptedException {
+    void testUnregisterTransactionMonitorBroadcastsRemovedMessage() throws InterruptedException {
         final String txHash = generateTxHash();
         String monitorId = doTestRegisterTransactionMonitorSavesInDb(txHash);
 

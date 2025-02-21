@@ -91,7 +91,7 @@ public class NodeHealthCheckService {
     }
 
     @EventListener
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(ContextRefreshedEvent ignored) {
         log.info("Starting healthcheck scheduler");
         taskScheduler.scheduleWithFixedDelay(
                 this::checkHealth, 0, healthCheckPollInterval, TimeUnit.MILLISECONDS);
@@ -135,7 +135,7 @@ public class NodeHealthCheckService {
             nodeStatusGauge.set(nodeStatus.ordinal());
         } catch (Throwable t) {
             log.error(
-                    "An error occured during the check health / recovery process...Will retry at next poll",
+                    "An error occurred during the check health / recovery process...Will retry at next poll",
                     t);
         }
     }
@@ -150,10 +150,10 @@ public class NodeHealthCheckService {
             } else {
                 syncing.set(1);
             }
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             log.error(
-                    "Get latest block failed with exception on node "
-                            + blockchainService.getNodeName(),
+                    "Get latest block failed with exception on node {}",
+                    blockchainService.getNodeName(),
                     t);
 
             return false;

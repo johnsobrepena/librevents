@@ -29,7 +29,7 @@ import org.web3j.abi.datatypes.generated.Uint8;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Web3jEventParameterConverterTest {
+class Web3jEventParameterConverterTest {
     private static String ADDRESS = "0xBb4F53C05e50574C5fEdbFE89c13Cc5fEb634ae3";
 
     private Web3jEventParameterConverter underTest;
@@ -40,28 +40,28 @@ public class Web3jEventParameterConverterTest {
     }
 
     @Test
-    public void testAddressConversion() {
+    void testAddressConversion() {
         final EventParameter<String> result = underTest.convert(new Address(ADDRESS));
 
         assertEquals(ADDRESS, result.getValue());
     }
 
     @Test
-    public void testUint256Conversion() {
+    void testUint256Conversion() {
         final EventParameter<BigInteger> result = underTest.convert(new Uint256(10));
 
         assertEquals(BigInteger.TEN, result.getValue());
     }
 
     @Test
-    public void testUint8Conversion() {
+    void testUint8Conversion() {
         final EventParameter<BigInteger> result = underTest.convert(new Uint8(10));
 
         assertEquals(BigInteger.TEN, result.getValue());
     }
 
     @Test
-    public void testBytes32Conversion() {
+    void testBytes32Conversion() {
         final byte[] bytes =
                 new BigInteger(
                                 "61546f7069630000000000000000000000000000000000000000000000000000",
@@ -75,12 +75,12 @@ public class Web3jEventParameterConverterTest {
     }
 
     @Test
-    public void testInvalidTypeConversion() {
+    void testInvalidTypeConversion() {
         Assertions.assertThrows(
                 TypeConversionException.class, () -> underTest.convert(new InvalidType()));
     }
 
-    private class InvalidType implements Type {
+    private static class InvalidType implements Type {
 
         @Override
         public Object getValue() {

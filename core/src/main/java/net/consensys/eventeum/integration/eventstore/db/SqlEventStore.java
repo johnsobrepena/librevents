@@ -59,8 +59,6 @@ public class SqlEventStore implements SaveableEventStore {
 
     @Override
     public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
-        final Iterable<LatestBlock> blocks = latestBlockRepository.findAll();
-
         return latestBlockRepository.findById(nodeName);
     }
 

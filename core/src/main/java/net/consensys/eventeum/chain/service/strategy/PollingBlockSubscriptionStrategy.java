@@ -75,10 +75,10 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
             case NORMAL:
                 blockSubscription =
                         web3j.replayPastAndFutureBlocksFlowable(blockParam, true)
-                                .doOnError((error) -> onError(blockSubscription, error))
+                                .doOnError(error -> onError(blockSubscription, error))
                                 .subscribe(
                                         this::triggerListeners,
-                                        (error) -> onError(blockSubscription, error));
+                                        error -> onError(blockSubscription, error));
                 break;
             case MIRROR:
                 blockSubscription =
@@ -86,10 +86,10 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
                                 .blocksFlowable(
                                         ((DefaultBlockParameterNumber) blockParam).getBlockNumber(),
                                         pollingInterval)
-                                .doOnError((error) -> onError(blockSubscription, error))
+                                .doOnError(error -> onError(blockSubscription, error))
                                 .subscribe(
                                         this::triggerListeners,
-                                        (error) -> onError(blockSubscription, error));
+                                        error -> onError(blockSubscription, error));
                 break;
             default:
                 break;
@@ -107,8 +107,8 @@ public class PollingBlockSubscriptionStrategy extends AbstractBlockSubscriptionS
 
         try {
             return new Web3jBlock(blockObject.getBlock(), nodeName);
-        } catch (Throwable t) {
-            log.error("Error converting block: " + JSON.stringify(blockObject), t);
+        } catch (RuntimeException t) {
+            log.error("Error converting block: {}", JSON.stringify(blockObject), t);
             throw t;
         }
     }

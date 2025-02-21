@@ -15,6 +15,7 @@
 package net.consensys.eventeum.chain.settings;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import lombok.Data;
 import net.consensys.eventeum.chain.service.BlockchainException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -64,7 +66,7 @@ public class NodeSettings {
 
     private static final String ATTRIBUTE_PREFIX = "ethereum";
 
-    private static final String NODE_ATTRIBUTE_PREFIX = ".nodes[%s]";
+    private static final String NODE_ATTRIBUTE_PREFIX = ".nodes";
 
     private static final String NODE_URL_ATTRIBUTE = "url";
 
@@ -189,7 +191,9 @@ public class NodeSettings {
                                 getNodePollingIntervalProperty(environment, supportedChain, index),
                                 getNodeUsernameProperty(environment, supportedChain, index),
                                 getNodePasswordProperty(environment, supportedChain, index),
-                                getNodeBlockStrategyProperty(environment, supportedChain, index),
+                                BlockStrategy.valueOf(
+                                        getNodeBlockStrategyProperty(
+                                                environment, supportedChain, index)),
                                 getNodeTransactionRevertReasonProperty(
                                         environment, supportedChain, index),
                                 getMaxIdleConnectionsProperty(environment, supportedChain, index),
@@ -225,8 +229,10 @@ public class NodeSettings {
     private Map<String, Object> getExtensions(
             Environment environment, String chainName, int index) {
         return Binder.get(environment)
-                .bind(buildNodeAttribute(EXTENSIONS_ATTRIBUTE, chainName, index), Map.class)
-                .orElse(null);
+                .bind(
+                        buildNodeAttribute(EXTENSIONS_ATTRIBUTE, chainName, index),
+                        Bindable.mapOf(String.class, Object.class))
+                .orElseGet(Collections::emptyMap);
     }
 
     private BigInteger getLimitMirrorNodeResults(
@@ -247,7 +253,7 @@ public class NodeSettings {
             limitMirrorNodeResults = DEFAULT_LIMIT_MIRROR_NODE_RESULTS;
         }
 
-        return BigInteger.valueOf(Long.valueOf(limitMirrorNodeResults));
+        return BigInteger.valueOf(Long.parseLong(limitMirrorNodeResults));
     }
 
     private boolean nodeExistsAtIndex(Environment environment, String chainName, int index) {
@@ -265,10 +271,9 @@ public class NodeSettings {
         if (nodeType == null) {
             nodeType = NodeType.NORMAL.getNodeName();
         }
-        if (chainName.equals(ETHEREUM_CHAIN_NAME_ATTRIBUTE)) {
-            if (!nodeType.equals(NodeType.NORMAL.getNodeName())) {
-                throw new BlockchainException("Ethereum only supports normal nodes!");
-            }
+        if (chainName.equals(ETHEREUM_CHAIN_NAME_ATTRIBUTE)
+                && !nodeType.equals(NodeType.NORMAL.getNodeName())) {
+            throw new BlockchainException("Ethereum only supports normal nodes!");
         }
         return NodeType.valueOf(nodeType);
     }
@@ -307,8 +312,10 @@ public class NodeSettings {
 
     private Map<String, String> getHeaders(Environment environment, String chainName, int index) {
         return Binder.get(environment)
-                .bind(buildNodeAttribute(NODE_HEADERS_ATTRIBUTE, chainName, index), Map.class)
-                .orElse(null);
+                .bind(
+                        buildNodeAttribute(NODE_HEADERS_ATTRIBUTE, chainName, index),
+                        Bindable.mapOf(String.class, String.class))
+                .orElseGet(Collections::emptyMap);
     }
 
     private Long getNodePollingIntervalProperty(
@@ -458,7 +465,7 @@ public class NodeSettings {
                         buildNodeAttribute(NODE_SYNC_START_BLOCK_ATTRIBUTE, chainName, index));
         if (initialStartBlock != null) {
             logger.warn(
-                    "Use property INITIAL_START_BLOCK instead of NODE_SYNC_START_BLOCK because has been deprecrated.");
+                    "Use property INITIAL_START_BLOCK instead of NODE_SYNC_START_BLOCK because has been deprecated.");
         } else {
             initialStartBlock =
                     getProperty(
@@ -506,7 +513,7 @@ public class NodeSettings {
         }
         if (maxBlocksToSync != null) {
             logger.warn(
-                    "Use properties MAX_BLOCK_TO_SYNC instead of MAX_UNSYNCED_BLOCKS_FOR_FILTER because has been deprecrated.");
+                    "Use properties MAX_BLOCK_TO_SYNC instead of MAX_UNSYNCED_BLOCKS_FOR_FILTER because has been deprecated.");
         } else {
             maxBlocksToSync =
                     getProperty(
@@ -589,9 +596,6 @@ public class NodeSettings {
     }
 
     private String buildNodeAttribute(String attribute, String chainName, int index) {
-        return new StringBuilder(String.format(chainName + NODE_ATTRIBUTE_PREFIX, index))
-                .append(".")
-                .append(attribute)
-                .toString();
+        return String.format("%s%s[%s].%s", chainName, NODE_ATTRIBUTE_PREFIX, index, attribute);
     }
 }

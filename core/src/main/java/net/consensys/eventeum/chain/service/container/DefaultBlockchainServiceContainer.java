@@ -51,6 +51,6 @@ public class DefaultBlockchainServiceContainer implements ChainServicesContainer
 
     @Override
     public List<String> getNodeNames() {
-        return new ArrayList(nodeServicesMap.keySet());
+        return new ArrayList<>(nodeServicesMap.keySet());
     }
 }

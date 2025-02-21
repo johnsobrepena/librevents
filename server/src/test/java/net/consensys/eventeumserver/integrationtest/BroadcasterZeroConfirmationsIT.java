@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class BroadcasterZeroConfirmationsIT extends BaseKafkaIntegrationTest {
 
     @Test
-    public void testBroadcastsConfirmedEventAfterInitialEmit() throws Exception {
+    void testBroadcastsConfirmedEventAfterInitialEmit() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
@@ -52,7 +52,7 @@ public class BroadcasterZeroConfirmationsIT extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
         System.out.println(JSON.stringify(eventDetails));
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }

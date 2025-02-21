@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultEventBlockManagementServiceTest {
+class DefaultEventBlockManagementServiceTest {
 
     private static final String EVENT_SPEC_HASH =
             "0x4d44a3f7bbdc3ab16cf28ad5234f38b7464ff912da473754ab39f0f97692eded";
@@ -104,7 +104,7 @@ public class DefaultEventBlockManagementServiceTest {
     }
 
     @Test
-    public void testUpdateAndGetNoMatch() {
+    void testUpdateAndGetNoMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
 
@@ -112,7 +112,7 @@ public class DefaultEventBlockManagementServiceTest {
     }
 
     @Test
-    public void testUpdateAndGetLowerMatch() {
+    void testUpdateAndGetLowerMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE, CONTRACT_ADDRESS);
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
@@ -121,7 +121,7 @@ public class DefaultEventBlockManagementServiceTest {
     }
 
     @Test
-    public void testUpdateAndGetHigherMatch() {
+    void testUpdateAndGetHigherMatch() {
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.TEN, CONTRACT_ADDRESS);
         underTest.updateLatestBlock(EVENT_SPEC_HASH, BigInteger.ONE, CONTRACT_ADDRESS);
         final BigInteger result = underTest.getLatestBlockForEvent(EVENT_FILTER);
@@ -130,7 +130,7 @@ public class DefaultEventBlockManagementServiceTest {
     }
 
     @Test
-    public void testGetNoLocalMatchButHitInEventStore() {
+    void testGetNoLocalMatchButHitInEventStore() {
         final ContractEventDetails mockEventDetails = mock(ContractEventDetails.class);
         when(mockEventDetails.getBlockNumber()).thenReturn(BigInteger.ONE);
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS))
@@ -142,7 +142,7 @@ public class DefaultEventBlockManagementServiceTest {
     }
 
     @Test
-    public void testGetNoLocalMatchAndNoHitInEventStore() {
+    void testGetNoLocalMatchAndNoHitInEventStore() {
         when(mockEventStoreService.getLatestContractEvent(EVENT_SPEC_HASH, CONTRACT_ADDRESS))
                 .thenReturn(null);
         when(mockBlockchainService.getCurrentBlockNumber()).thenReturn(BigInteger.valueOf(20));

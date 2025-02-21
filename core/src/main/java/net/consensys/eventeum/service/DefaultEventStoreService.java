@@ -56,11 +56,11 @@ public class DefaultEventStoreService implements EventStoreService {
 
         final List<ContractEventDetails> events = eventsPage.getContent();
 
-        if (events == null || events.isEmpty()) {
+        if (events.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(events.get(0));
+        return Optional.of(events.getFirst());
     }
 
     @Override

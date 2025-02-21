@@ -30,5 +30,5 @@ public class PrometheusIT extends BaseKafkaIntegrationTest {
     // For now just test that eventeum starts up when prometheus is configured.
     // Add more tests in the future
     @Test
-    public void testStartup() {}
+    void testStartup() {}
 }

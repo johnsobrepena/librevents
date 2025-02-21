@@ -21,6 +21,7 @@ import java.util.function.Function;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -66,6 +67,7 @@ public class SimplePageImpl<T> implements Page<T> {
         return delegate.getNumberOfElements();
     }
 
+    @NotNull
     @JsonProperty
     @Override
     public List<T> getContent() {
@@ -78,6 +80,7 @@ public class SimplePageImpl<T> implements Page<T> {
         return delegate.hasContent();
     }
 
+    @NotNull
     @JsonIgnore
     @Override
     public Sort getSort() {
@@ -108,24 +111,28 @@ public class SimplePageImpl<T> implements Page<T> {
         return delegate.hasPrevious();
     }
 
+    @NotNull
     @JsonIgnore
     @Override
     public Pageable nextPageable() {
         return delegate.nextPageable();
     }
 
+    @NotNull
     @JsonIgnore
     @Override
     public Pageable previousPageable() {
         return delegate.previousPageable();
     }
 
+    @NotNull
     @JsonIgnore
     @Override
-    public <U> Page<U> map(Function<? super T, ? extends U> function) {
+    public <U> Page<U> map(@NotNull Function<? super T, ? extends U> function) {
         return delegate.map(function);
     }
 
+    @NotNull
     @JsonIgnore
     @Override
     public Iterator<T> iterator() {

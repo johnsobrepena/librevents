@@ -39,14 +39,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-public class PubSubBlockchainSubscriptionStrategyTest {
+class PubSubBlockchainSubscriptionStrategyTest {
 
     private static final String BLOCK_HASH =
             "0xc0e07697167c58f2a173df45f5c9b2c46ca0941cdf0bf79616d53dc92f62aebd";
 
     private static final BigInteger BLOCK_NUMBER = BigInteger.valueOf(123);
-
-    private static final String BLOCK_NUMBER_HEX = "0x7B";
 
     // 12345678
     private static final String BLOCK_TIMESTAMP = "0xbc614e";
@@ -92,7 +90,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
         when(mockBlock.getTimestamp()).thenReturn(Numeric.toBigInt(BLOCK_TIMESTAMP));
         when(mockEthBlock.getBlock()).thenReturn(mockBlock);
 
-        final Request<?, EthBlock> mockRequest = mock(Request.class);
+        final Request mockRequest = mock(Request.class);
         doReturn(mockRequest).when(mockWeb3j).ethGetBlockByHash(BLOCK_HASH, true);
 
         when(mockRequest.send()).thenReturn(mockEthBlock);
@@ -109,14 +107,14 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testAddBlockListener() {
+    void testAddBlockListener() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
         assertNotNull(block);
     }
 
     @Test
-    public void testRemoveBlockListener() {
+    void testRemoveBlockListener() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
         assertNotNull(block);
@@ -130,7 +128,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockHashPassedToListenerIsCorrect() {
+    void testBlockHashPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -138,7 +136,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockNumberPassedToListenerIsCorrect() {
+    void testBlockNumberPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -146,7 +144,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockTimestampPassedToListenerIsCorrect() {
+    void testBlockTimestampPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -154,7 +152,7 @@ public class PubSubBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockNodeNamePassedToListenerIsCorrect() {
+    void testBlockNodeNamePassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 

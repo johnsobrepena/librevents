@@ -75,7 +75,7 @@ class HederaServiceTest {
     }
 
     @Test
-    public void getContractResults() throws IOException, NotFoundException {
+    void getContractResults() throws IOException, NotFoundException {
         ContractResultsResponse contractResultsResponse = new ContractResultsResponse();
         ContractResultResponse contractResultResponse = new ContractResultResponse();
         BigInteger blockNumber = BigInteger.valueOf(5670700);
@@ -101,11 +101,11 @@ class HederaServiceTest {
                 this.hederaService.getContractResultsByBlock(blockNumber);
         Assert.notNull(response);
         Assert.isTrue(response.getResults().size() == 1);
-        Assert.isTrue(response.getResults().get(0).equals(contractResultResponse));
+        Assert.isTrue(response.getResults().getFirst().equals(contractResultResponse));
     }
 
     @Test
-    public void getContractResult() throws IOException, NotFoundException {
+    void getContractResult() throws IOException, NotFoundException {
         ContractResultResponse contractResultResponse = new ContractResultResponse();
         contractResultResponse.setContractId("0.0.1");
 
@@ -130,7 +130,7 @@ class HederaServiceTest {
     }
 
     @Test
-    public void getContractResultButNotFoundIsExpected() throws IOException {
+    void getContractResultButNotFoundIsExpected() throws IOException {
         ContractResultResponse contractResultResponse = new ContractResultResponse();
         contractResultResponse.setContractId("0.0.1");
         final String url = "https://url.com";
@@ -162,7 +162,7 @@ class HederaServiceTest {
     }
 
     @Test
-    public void getContractResultButBadRequestIsExpected() throws IOException {
+    void getContractResultButBadRequestIsExpected() throws IOException {
         ContractResultResponse contractResultResponse = new ContractResultResponse();
         contractResultResponse.setContractId("0.0.1");
         final String url = "https://url.com";
@@ -194,7 +194,7 @@ class HederaServiceTest {
     }
 
     @Test
-    public void getBlock() throws IOException, NotFoundException {
+    void getBlock() throws IOException, NotFoundException {
         BlocksResponse blocksResponse = new BlocksResponse();
         BlockResponse blockResponse = new BlockResponse();
         blockResponse.setNumber(BigInteger.ONE);
@@ -220,7 +220,7 @@ class HederaServiceTest {
     }
 
     @Test
-    public void getEventForFilter() {
+    void getEventForFilter() {
         ContractEventFilter eventFilter = new ContractEventFilter();
         ContractEventSpecification eventSpecification = new ContractEventSpecification();
         eventSpecification.setEventName("test");

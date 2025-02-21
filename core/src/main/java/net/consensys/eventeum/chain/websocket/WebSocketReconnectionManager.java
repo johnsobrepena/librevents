@@ -32,6 +32,7 @@ public class WebSocketReconnectionManager {
             }
         } catch (InterruptedException e) {
             log.error("Reconnect failed!", e);
+            Thread.currentThread().interrupt();
         }
     }
 }

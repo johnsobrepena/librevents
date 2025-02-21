@@ -71,7 +71,7 @@ public class RabbitBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastNewBlock() {
+    void testBroadcastNewBlock() {
 
         final BlockDetails block = new BlockDetails();
         block.setHash("0xc2141b870536473fdea321893bc084eb3244cc56ea8d4b77de240dfeac6604d2");
@@ -92,7 +92,7 @@ public class RabbitBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastContractEvent() {
+    void testBroadcastContractEvent() {
 
         final ContractEventDetails event = createContractEventDetails();
 
@@ -113,7 +113,7 @@ public class RabbitBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastTransactionEvent() {
+    void testBroadcastTransactionEvent() {
 
         final TransactionDetails event = createTransactionEvent();
 
@@ -134,7 +134,7 @@ public class RabbitBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastMessageEvent() {
+    void testBroadcastMessageEvent() {
 
         final MessageDetails event = createMessageDetailsEvent();
 

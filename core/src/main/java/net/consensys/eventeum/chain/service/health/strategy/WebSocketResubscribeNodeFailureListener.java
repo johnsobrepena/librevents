@@ -14,6 +14,8 @@
 
 package net.consensys.eventeum.chain.service.health.strategy;
 
+import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.strategy.BlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.websocket.WebSocketReconnectionManager;
@@ -24,15 +26,15 @@ import org.web3j.protocol.websocket.WebSocketClient;
  * An NodeFailureListener that reconnects to the websocket server on failure, and reconnects the
  * block subscription and resubscribes to all active event subscriptions on recovery.
  *
- * <p>Note: All subscriptions are unregistered before being reregistered.
+ * <p>Note: All subscriptions are unregistered before being registered.
  *
  * @author Craig Williams craig.williams@consensys.net
  */
 @Slf4j
 public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconnectionStrategy {
 
-    private WebSocketReconnectionManager reconnectionManager;
-    private WebSocketClient client;
+    private final WebSocketReconnectionManager reconnectionManager;
+    private final WebSocketClient client;
 
     public WebSocketResubscribeNodeFailureListener(
             SubscriptionService subscriptionService,
@@ -51,5 +53,19 @@ public class WebSocketResubscribeNodeFailureListener extends ResubscribingReconn
                 "Reconnecting web socket because of {} node failure",
                 getBlockSubscriptionStrategy().getNodeName());
         reconnectionManager.reconnect(client);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        WebSocketResubscribeNodeFailureListener that = (WebSocketResubscribeNodeFailureListener) o;
+        return Objects.equals(reconnectionManager, that.reconnectionManager)
+                && Objects.equals(client, that.client);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), reconnectionManager, client);
     }
 }

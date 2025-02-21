@@ -37,12 +37,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations = "classpath:application-test-db.properties")
-public class AsciiBytesIT extends MainBroadcasterTests {
+class AsciiBytesIT extends MainBroadcasterTests {
 
     @Autowired private EventStore eventStore;
 
     @Test
-    public void testAsciiBytes() throws Exception {
+    void testAsciiBytes() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter =
@@ -53,7 +53,7 @@ public class AsciiBytesIT extends MainBroadcasterTests {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
 
         verifyDummyEventDetails(
                 registeredFilter,

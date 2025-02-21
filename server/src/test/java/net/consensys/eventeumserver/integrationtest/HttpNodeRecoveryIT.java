@@ -29,12 +29,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class HttpNodeRecoveryIT extends NodeRecoveryTests {
 
     @Test
-    public void singleNodeFailureRecoveryTest() throws Exception {
+    void singleNodeFailureRecoveryTest() throws Exception {
         doSingleNodeFailureRecoveryTest();
     }
 
     @Test
-    public void multipleNodeFailuresRecoveryTest() throws Exception {
+    void multipleNodeFailuresRecoveryTest() throws Exception {
         doMultipleNodeFailuresRecoveryTest();
     }
 

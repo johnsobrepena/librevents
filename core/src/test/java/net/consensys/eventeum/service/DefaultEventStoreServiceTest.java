@@ -16,6 +16,7 @@ package net.consensys.eventeum.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.integration.eventstore.EventStore;
@@ -33,7 +34,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class DefaultEventStoreServiceTest {
+class DefaultEventStoreServiceTest {
 
     private static final String EVENT_SIGNATURE = "signature";
 
@@ -55,7 +56,7 @@ public class DefaultEventStoreServiceTest {
     }
 
     @Test
-    public void testGetLatestContractEvent() {
+    void testGetLatestContractEvent() {
         when(mockPage.getContent()).thenReturn(Arrays.asList(mockEventDetails1, mockEventDetails2));
         when(mockEventStore.getContractEventsForSignature(
                         eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class)))
@@ -66,8 +67,8 @@ public class DefaultEventStoreServiceTest {
     }
 
     @Test
-    public void testGetLatestContractEventNullEvents() {
-        when(mockPage.getContent()).thenReturn(null);
+    void testGetLatestContractEventNullEvents() {
+        when(mockPage.getContent()).thenReturn(Collections.emptyList());
         when(mockEventStore.getContractEventsForSignature(
                         eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class)))
                 .thenReturn(mockPage);
@@ -77,7 +78,7 @@ public class DefaultEventStoreServiceTest {
     }
 
     @Test
-    public void testGetLatestContractEventEmptyEvents() {
+    void testGetLatestContractEventEmptyEvents() {
         when(mockPage.getContent()).thenReturn(new ArrayList<>());
         when(mockEventStore.getContractEventsForSignature(
                         eq(EVENT_SIGNATURE), eq(CONTRACT_ADDRESS), any(PageRequest.class)))

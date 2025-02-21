@@ -62,7 +62,7 @@ public class DefaultEventSyncService implements EventSyncService {
         filters.forEach(
                 filter ->
                         retryTemplate.execute(
-                                (context) -> {
+                                context -> {
                                     syncFilter(filter);
                                     return null;
                                 }));
@@ -72,7 +72,7 @@ public class DefaultEventSyncService implements EventSyncService {
         final Optional<EventFilterSyncStatus> syncStatus =
                 syncStatusRepository.findById(filter.getId());
 
-        if (!syncStatus.isPresent() || syncStatus.get().getSyncStatus() == SyncStatus.NOT_SYNCED) {
+        if (syncStatus.isEmpty() || syncStatus.get().getSyncStatus() == SyncStatus.NOT_SYNCED) {
             final BigInteger startBlock = getStartBlock(filter, syncStatus);
             // Should sync to block start block number
             final BigInteger endBlock = blockNumberService.getStartBlockForNode(filter.getNode());
@@ -84,7 +84,7 @@ public class DefaultEventSyncService implements EventSyncService {
                     endBlock);
 
             eventRetriever.retrieveEvents(
-                    filter, startBlock, endBlock, (events) -> events.forEach(this::processEvent));
+                    filter, startBlock, endBlock, events -> events.forEach(this::processEvent));
 
             final EventFilterSyncStatus finalSyncStatus = getEventSyncStatus(filter.getId());
             finalSyncStatus.setSyncStatus(SyncStatus.SYNCED);

@@ -50,7 +50,7 @@ public class TransactionMonitoringSpec {
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.ORDINAL)
     private List<TransactionStatus> statuses =
-            new ArrayList(
+            new ArrayList<>(
                     Arrays.asList(
                             TransactionStatus.UNCONFIRMED,
                             TransactionStatus.CONFIRMED,
@@ -71,7 +71,6 @@ public class TransactionMonitoringSpec {
         this.transactionIdentifierValue = transactionIdentifierValue;
         this.nodeName = nodeName;
         this.extension = extension;
-        System.out.println("Extension: " + extension);
         if (statuses != null && !statuses.isEmpty()) {
             this.statuses = statuses;
         }

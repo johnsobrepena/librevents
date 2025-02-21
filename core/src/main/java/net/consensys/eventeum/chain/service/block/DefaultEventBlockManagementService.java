@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.service.block;
 
 import java.math.BigInteger;
 import java.util.AbstractMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,13 +45,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DefaultEventBlockManagementService implements EventBlockManagementService {
 
-    private AbstractMap<String, AbstractMap> latestBlocks = new ConcurrentHashMap<>();
-
-    private ChainServicesContainer chainServicesContainer;
-
-    private EventStoreService eventStoreService;
-
-    private NodeSettings nodeSettings;
+    private final AbstractMap<String, AbstractMap<String, BigInteger>> latestBlocks =
+            new ConcurrentHashMap<>();
+    private final ChainServicesContainer chainServicesContainer;
+    private final EventStoreService eventStoreService;
+    private final NodeSettings nodeSettings;
 
     @Autowired
     public DefaultEventBlockManagementService(
@@ -64,12 +63,8 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
 
     @Override
     public void updateLatestBlock(String eventSpecHash, BigInteger blockNumber, String address) {
-        AbstractMap<String, BigInteger> events = latestBlocks.get(address);
-
-        if (events == null) {
-            events = new ConcurrentHashMap<>();
-            latestBlocks.put(address, events);
-        }
+        AbstractMap<String, BigInteger> events =
+                latestBlocks.computeIfAbsent(address, k -> new ConcurrentHashMap<>());
 
         final BigInteger currentLatest = events.get(eventSpecHash);
 
@@ -85,7 +80,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                         .getNodeServices(eventFilter.getNode())
                         .getBlockchainService()
                         .getCurrentBlockNumber();
-        final BigInteger maxUnsyncedBlocksForFilter =
+        final BigInteger maxNotSyncBlocksForFilter =
                 nodeSettings.getNode(eventFilter.getNode()).getMaxBlocksToSync();
         final String eventSignature = Web3jUtil.getSignature(eventFilter.getEventSpecification());
         final AbstractMap<String, BigInteger> events =
@@ -104,15 +99,16 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                         "cappedBlockNumber in event getLatestBlockForEvent: {}", cappedBlockNumber);
                 if (currentBlockNumber
                                 .subtract(latestBlockNumber)
-                                .compareTo(maxUnsyncedBlocksForFilter)
-                        == 1) {
-                    cappedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+                                .compareTo(maxNotSyncBlocksForFilter)
+                        > 0) {
+                    cappedBlockNumber = currentBlockNumber.subtract(maxNotSyncBlocksForFilter);
                     log.info(
                             "{} :Max Unsynced Blocks gap reached ´{} to {} . Applied {}. Max {}",
                             eventFilter.getId(),
+                            currentBlockNumber,
                             latestBlockNumber,
                             cappedBlockNumber,
-                            maxUnsyncedBlocksForFilter);
+                            maxNotSyncBlocksForFilter);
                     return cappedBlockNumber;
                 } else {
                     log.debug(
@@ -132,10 +128,9 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
         if (contractEvent.isPresent()) {
             BigInteger blockNumber = contractEvent.get().getBlockNumber();
 
-            BigInteger limitedBlockNumber = BigInteger.valueOf(0);
-            if (currentBlockNumber.subtract(blockNumber).compareTo(maxUnsyncedBlocksForFilter)
-                    == 1) {
-                limitedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+            BigInteger limitedBlockNumber;
+            if (currentBlockNumber.subtract(blockNumber).compareTo(maxNotSyncBlocksForFilter) > 0) {
+                limitedBlockNumber = currentBlockNumber.subtract(maxNotSyncBlocksForFilter);
                 log.info(
                         "limitedBlockNumber in contract getLatestBlockForEvent: {}",
                         limitedBlockNumber);
@@ -146,7 +141,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                         currentBlockNumber,
                         blockNumber,
                         limitedBlockNumber,
-                        maxUnsyncedBlocksForFilter);
+                        maxNotSyncBlocksForFilter);
                 return limitedBlockNumber;
             } else {
 
@@ -162,8 +157,9 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
         BigInteger syncStartBlock =
                 nodeSettings.getNode(eventFilter.getNode()).getInitialStartBlock();
 
-        if (syncStartBlock
-                != BigInteger.valueOf(Long.valueOf(NodeSettings.DEFAULT_SYNC_START_BLOCK))) {
+        if (!Objects.equals(
+                syncStartBlock,
+                BigInteger.valueOf(Long.parseLong(NodeSettings.DEFAULT_SYNC_START_BLOCK)))) {
 
             log.debug(
                     "Block number for event {}, starting at blockNumber configured with the node special startBlockNumber: {}",
@@ -174,10 +170,10 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
             if (eventFilter.getStartBlock() != null) {
 
                 BigInteger blockNumber = eventFilter.getStartBlock();
-                BigInteger limitedBlockNumber = BigInteger.valueOf(0);
-                if (currentBlockNumber.subtract(blockNumber).compareTo(maxUnsyncedBlocksForFilter)
-                        == 1) {
-                    limitedBlockNumber = currentBlockNumber.subtract(maxUnsyncedBlocksForFilter);
+                BigInteger limitedBlockNumber;
+                if (currentBlockNumber.subtract(blockNumber).compareTo(maxNotSyncBlocksForFilter)
+                        > 0) {
+                    limitedBlockNumber = currentBlockNumber.subtract(maxNotSyncBlocksForFilter);
                     log.info(
                             "limitedBlockNumber in event filter getLatestBlockForEvent: {}",
                             limitedBlockNumber);
@@ -188,7 +184,7 @@ public class DefaultEventBlockManagementService implements EventBlockManagementS
                             currentBlockNumber,
                             blockNumber,
                             limitedBlockNumber,
-                            maxUnsyncedBlocksForFilter);
+                            maxNotSyncBlocksForFilter);
                     return limitedBlockNumber;
                 } else {
                     log.debug(

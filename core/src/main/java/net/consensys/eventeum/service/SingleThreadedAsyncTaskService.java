@@ -48,11 +48,7 @@ public class SingleThreadedAsyncTaskService implements AsyncTaskService {
     }
 
     private ExecutorService getOrCreateExecutor(String executorName) {
-        if (!executorServices.containsKey(executorName)) {
-            executorServices.put(executorName, buildExecutor(executorName));
-        }
-
-        return executorServices.get(executorName);
+        return executorServices.computeIfAbsent(executorName, k -> buildExecutor(executorName));
     }
 
     protected ExecutorService buildExecutor(String executorName) {

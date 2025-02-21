@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.config.EventFilterConfiguration;
 import net.consensys.eventeum.chain.config.TransactionFilterConfiguration;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -27,8 +28,6 @@ import net.consensys.eventeum.factory.ContractEventFilterFactory;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.SubscriptionService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.repository.CrudRepository;
@@ -40,10 +39,10 @@ import org.springframework.stereotype.Service;
  *
  * @author Craig Williams craig.williams@consensys.net
  */
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ChainBootstrapper {
-    private final Logger LOG = LoggerFactory.getLogger(ChainBootstrapper.class);
 
     private SubscriptionService subscriptionService;
     private TransactionMonitoringService transactionMonitoringService;
@@ -54,10 +53,10 @@ public class ChainBootstrapper {
     private TransactionFilterConfiguration transactionFilterConfiguration;
 
     @EventListener
-    public void onApplicationEvent(ContextRefreshedEvent event) {
-        registerTransactionsToMonitor(transactionMonitoringRepository.findAll(), true);
+    public void onApplicationEvent(ContextRefreshedEvent ignored) {
+        registerTransactionsToMonitor(transactionMonitoringRepository.findAll());
         registerTransactionsToMonitor(
-                transactionFilterConfiguration.getConfiguredTransactionFilters(), true);
+                transactionFilterConfiguration.getConfiguredTransactionFilters());
 
         // Remove from existing eventFilters the ones that are included by configuration to avoid
         // overwriting
@@ -74,9 +73,7 @@ public class ChainBootstrapper {
         registerFilters(existingEventFilters, false);
 
         contractEventFilterFactories.ifPresent(
-                (factories) -> {
-                    factories.forEach(factory -> registerFilters(factory.build(), true));
-                });
+                factories -> factories.forEach(factory -> registerFilters(factory.build(), true)));
     }
 
     private void registerFilters(Iterable<ContractEventFilter> filters, boolean broadcast) {
@@ -89,14 +86,13 @@ public class ChainBootstrapper {
         subscriptionService.registerContractEventFilterWithRetries(filter, broadcast);
     }
 
-    private void registerTransactionsToMonitor(
-            Iterable<TransactionMonitoringSpec> specs, boolean broadcast) {
+    private void registerTransactionsToMonitor(Iterable<TransactionMonitoringSpec> specs) {
         if (specs != null) {
-            specs.forEach(spec -> registerTransactionToMonitor(spec, broadcast));
+            specs.forEach(this::registerTransactionToMonitor);
         }
     }
 
-    private void registerTransactionToMonitor(TransactionMonitoringSpec spec, boolean broadcast) {
-        transactionMonitoringService.registerTransactionsToMonitor(spec, broadcast);
+    private void registerTransactionToMonitor(TransactionMonitoringSpec spec) {
+        transactionMonitoringService.registerTransactionsToMonitor(spec, true);
     }
 }

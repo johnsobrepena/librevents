@@ -43,6 +43,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 @Order(0)
 public class EventStoreConfiguration {
 
+    EventStoreConfiguration() {}
+
     @Configuration
     @ConditionalOnExpression("'${eventStore.type}:${database.type}'=='DB:MONGO'")
     @ConditionalOnMissingBean(EventStoreFactory.class)
@@ -113,7 +115,7 @@ public class EventStoreConfiguration {
     public static class RESTEventStoreConfiguration {
 
         @Bean
-        public EventStore RESTEventStore(EventStoreClient client) {
+        public EventStore restEventStore(EventStoreClient client) {
             return new RESTEventStore(client);
         }
     }

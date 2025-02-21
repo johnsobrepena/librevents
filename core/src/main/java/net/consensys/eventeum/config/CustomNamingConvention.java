@@ -14,19 +14,22 @@
 
 package net.consensys.eventeum.config;
 
+import java.util.EnumSet;
 import java.util.regex.Pattern;
 
 import io.micrometer.common.lang.Nullable;
 import io.micrometer.core.instrument.Meter.Type;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.prometheus.metrics.model.snapshots.PrometheusNaming;
+import org.jetbrains.annotations.NotNull;
 
 public class CustomNamingConvention implements NamingConvention {
 
     private static final Pattern nameChars = Pattern.compile("[^a-zA-Z0-9_:]");
-    private static final Pattern tagKeyChars = Pattern.compile("[^a-zA-Z0-9_]");
+    private static final Pattern tagKeyChars = Pattern.compile("\\W");
+    private static final String EVENTEUM_PREFIX = "eventeum_";
+    private static final String SECONDS_SUFFIX = "_seconds";
     private final String timerSuffix;
-    private static final String prefix = "eventeum_";
 
     public CustomNamingConvention() {
         this("");
@@ -36,29 +39,28 @@ public class CustomNamingConvention implements NamingConvention {
         this.timerSuffix = timerSuffix;
     }
 
-    @Override
-    public String name(String name, Type type, @Nullable String baseUnit) {
-        String conventionName = prefix + NamingConvention.snakeCase.name(name, type, baseUnit);
+    @NotNull
+    public String name(@NotNull String name, @NotNull Type type, @Nullable String baseUnit) {
+        String conventionName =
+                EVENTEUM_PREFIX + NamingConvention.snakeCase.name(name, type, baseUnit);
+        boolean needsTotalSuffix =
+                EnumSet.of(Type.DISTRIBUTION_SUMMARY, Type.COUNTER).contains(type);
+        boolean isTimer = EnumSet.of(Type.TIMER, Type.LONG_TASK_TIMER).contains(type);
 
-        switch (type) {
-            case COUNTER:
-                if (!conventionName.endsWith("_total")) {
-                    conventionName = conventionName + "_total";
-                }
-            case DISTRIBUTION_SUMMARY:
-            case GAUGE:
-                if (baseUnit != null && !conventionName.endsWith("_" + baseUnit)) {
-                    conventionName = conventionName + "_" + baseUnit;
-                }
-                break;
-            case TIMER:
-            case LONG_TASK_TIMER:
-                if (conventionName.endsWith(this.timerSuffix)) {
-                    conventionName = conventionName + "_seconds";
-                } else if (!conventionName.endsWith("_seconds")) {
-                    conventionName = conventionName + this.timerSuffix + "_seconds";
-                }
-                break;
+        if (needsTotalSuffix && !conventionName.endsWith("_total")) {
+            conventionName += "_total";
+        }
+
+        if (type == Type.GAUGE && baseUnit != null && !conventionName.endsWith("_" + baseUnit)) {
+            conventionName += "_" + baseUnit;
+        }
+
+        if (isTimer) {
+            if (conventionName.endsWith(timerSuffix)) {
+                conventionName += SECONDS_SUFFIX;
+            } else if (!conventionName.endsWith(SECONDS_SUFFIX)) {
+                conventionName += timerSuffix + SECONDS_SUFFIX;
+            }
         }
 
         // Ensure valid Prometheus metric naming
@@ -73,8 +75,9 @@ public class CustomNamingConvention implements NamingConvention {
         return sanitized;
     }
 
+    @NotNull
     @Override
-    public String tagKey(String key) {
+    public String tagKey(@NotNull String key) {
         String conventionKey = NamingConvention.snakeCase.tagKey(key);
         String sanitized = tagKeyChars.matcher(conventionKey).replaceAll("_");
         if (!Character.isLetter(sanitized.charAt(0))) {

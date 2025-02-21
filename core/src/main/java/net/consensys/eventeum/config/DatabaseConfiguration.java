@@ -33,6 +33,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @Import({DatabaseConfiguration.WithMongo.class, DatabaseConfiguration.WithJpa.class})
 public class DatabaseConfiguration {
 
+    DatabaseConfiguration() {}
+
     @ConditionalOnProperty(name = "database.type", havingValue = "MONGO")
     @EnableAutoConfiguration(
             exclude = {

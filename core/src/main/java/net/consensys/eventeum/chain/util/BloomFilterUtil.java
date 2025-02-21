@@ -17,7 +17,6 @@ package net.consensys.eventeum.chain.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Data;
@@ -26,6 +25,8 @@ import org.web3j.crypto.Hash;
 import org.web3j.utils.Numeric;
 
 public class BloomFilterUtil {
+
+    BloomFilterUtil() {}
 
     private static final int LEAST_SIGNIFICANT_THREE_BITS = 0x7;
 
@@ -61,25 +62,24 @@ public class BloomFilterUtil {
     public static boolean bloomFilterMatch(String bloomFilterHex, BloomFilterBits bitsToMatch) {
         final byte[] bloomFilterBytes = Numeric.hexStringToByteArray(bloomFilterHex);
 
-        return !bitsToMatch.getBitIndexes().stream()
-                .filter(
+        return bitsToMatch.getBitIndexes().stream()
+                .noneMatch(
                         bit -> {
                             final int byteIndex = 256 - 1 - bit / 8;
                             final int bitIndex = bit % 8;
 
                             final byte theByte = bloomFilterBytes[byteIndex];
                             return ((theByte >> bitIndex) & 1) == 0;
-                        })
-                .findFirst()
-                .isPresent();
+                        });
     }
 
     @Data
     public static class BloomFilterBits {
         private List<Integer> bitIndexes;
 
+        @SafeVarargs
         private BloomFilterBits(List<Integer>... bits) {
-            bitIndexes = Stream.of(bits).flatMap(Collection::stream).collect(Collectors.toList());
+            bitIndexes = Stream.of(bits).flatMap(Collection::stream).toList();
         }
     }
 }

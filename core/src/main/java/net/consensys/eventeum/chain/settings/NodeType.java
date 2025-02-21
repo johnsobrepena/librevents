@@ -1,5 +1,8 @@
 package net.consensys.eventeum.chain.settings;
 
+import lombok.Getter;
+
+@Getter
 public enum NodeType {
     NORMAL("NORMAL"),
     MIRROR("MIRROR");
@@ -8,9 +11,5 @@ public enum NodeType {
 
     NodeType(String nodeName) {
         this.nodeName = nodeName;
-    }
-
-    public String getNodeName() {
-        return nodeName;
     }
 }

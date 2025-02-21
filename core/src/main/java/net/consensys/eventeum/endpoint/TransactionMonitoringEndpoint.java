@@ -42,7 +42,7 @@ public class TransactionMonitoringEndpoint {
      * @param spec the transaction spec to add
      * @param response the http response
      */
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
     public MonitorTransactionsResponse monitorTransactions(
             @RequestBody TransactionMonitoringSpec spec, HttpServletResponse response) {
         spec.generateId();
@@ -58,7 +58,7 @@ public class TransactionMonitoringEndpoint {
      *
      * @param response the http response
      */
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public List<TransactionMonitoringSpec> getMonitorTransactions(HttpServletResponse response) {
         List<TransactionMonitoringSpec> registeredTransactions =
                 monitoringService.listTransactionMonitorings();
@@ -74,7 +74,7 @@ public class TransactionMonitoringEndpoint {
      * @param nodeName the name of the node where the transaction is being monitored
      * @param response the http response
      */
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{id}")
     public void stopMonitoringTransaction(
             @PathVariable String id,
             @RequestParam(required = false) String nodeName,

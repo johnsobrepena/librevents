@@ -43,7 +43,7 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
     private static final String TO_ADDRESS = "0x607f4c5bb672230e8672085532f7e901544a7375";
 
     @Test
-    public void testMultipleTransactions() throws Exception {
+    void testMultipleTransactions() throws Exception {
         final String[] hashes = new String[3];
 
         for (int i = 0; i < 3; i++) {
@@ -65,7 +65,7 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testLoadFilterFromConfig() throws Exception {
+    void testLoadFilterFromConfig() throws Exception {
         final String rawTx = createRawSignedTransactionHex(TO_ADDRESS);
         final String txHash = Hash.sha3(rawTx);
 
@@ -86,7 +86,7 @@ public class TransactionMonitorIT extends MainBroadcasterTests {
     }
 
     @Test
-    public void testContractCreationTransactionContainsContractAddress() throws Exception {
+    void testContractCreationTransactionContainsContractAddress() throws Exception {
         final TransactionMonitoringSpec monitorSpec =
                 new TransactionMonitoringSpec(
                         TransactionIdentifierType.FROM_ADDRESS,

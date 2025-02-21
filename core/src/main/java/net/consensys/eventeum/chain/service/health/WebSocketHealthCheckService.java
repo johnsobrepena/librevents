@@ -29,7 +29,7 @@ import org.web3j.protocol.websocket.WebSocketClient;
 
 public class WebSocketHealthCheckService extends NodeHealthCheckService {
 
-    private WebSocketClient webSocketClient;
+    private final WebSocketClient webSocketClient;
 
     public WebSocketHealthCheckService(
             Web3jService web3jService,
@@ -53,8 +53,8 @@ public class WebSocketHealthCheckService extends NodeHealthCheckService {
                 taskScheduler,
                 healthCheckPollInterval);
 
-        if (web3jService instanceof EventeumWebSocketService) {
-            this.webSocketClient = ((EventeumWebSocketService) web3jService).getWebSocketClient();
+        if (web3jService instanceof EventeumWebSocketService eventeumWebSocketService) {
+            this.webSocketClient = eventeumWebSocketService.getWebSocketClient();
         } else {
             throw new BlockchainException(
                     "Non web socket service passed to WebSocketHealthCheckService");

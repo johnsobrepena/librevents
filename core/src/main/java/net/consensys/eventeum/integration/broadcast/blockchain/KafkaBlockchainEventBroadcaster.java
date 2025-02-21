@@ -16,6 +16,7 @@ package net.consensys.eventeum.integration.broadcast.blockchain;
 
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
@@ -23,15 +24,13 @@ import net.consensys.eventeum.dto.message.*;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.utils.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
  * A BlockchainEventBroadcaster that broadcasts the events to a Kafka queue.
  *
- * <p>The key for each message will defined by the correlationIdStrategy if configured, or a
+ * <p>The key for each message will be defined by the correlationIdStrategy if configured, or a
  * combination of the transactionHash, blockHash and logIndex otherwise.
  *
  * <p>The topic names for block and contract events can be configured via the
@@ -39,16 +38,12 @@ import org.springframework.kafka.core.KafkaTemplate;
  *
  * @author Craig Williams craig.williams@consensys.net
  */
+@Slf4j
 public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcaster {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KafkaBlockchainEventBroadcaster.class);
-
-    private KafkaTemplate<String, EventeumMessage> kafkaTemplate;
-
-    private KafkaSettings kafkaSettings;
-
-    private CrudRepository<ContractEventFilter, String> filterRespository;
+    private final KafkaTemplate<String, EventeumMessage> kafkaTemplate;
+    private final KafkaSettings kafkaSettings;
+    private final CrudRepository<ContractEventFilter, String> filterRepository;
 
     public KafkaBlockchainEventBroadcaster(
             KafkaTemplate<String, EventeumMessage> kafkaTemplate,
@@ -56,13 +51,13 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
             CrudRepository<ContractEventFilter, String> filterRepository) {
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaSettings = kafkaSettings;
-        this.filterRespository = filterRepository;
+        this.filterRepository = filterRepository;
     }
 
     @Override
     public void broadcastNewBlock(BlockDetails block) {
         final EventeumMessage<BlockDetails> message = createBlockEventMessage(block);
-        LOG.info("Sending block message: " + JSON.stringify(message));
+        log.info("Sending block message: ${}", JSON.stringify(message));
 
         kafkaTemplate.send(kafkaSettings.getBlockEventsTopic(), message.getId(), message);
     }
@@ -71,7 +66,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         final EventeumMessage<ContractEventDetails> message =
                 createContractEventMessage(eventDetails);
-        LOG.info("Sending contract event message: " + JSON.stringify(message));
+        log.info("Sending contract event message: {}", JSON.stringify(message));
 
         kafkaTemplate.send(
                 kafkaSettings.getContractEventsTopic(),
@@ -83,7 +78,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     public void broadcastTransaction(TransactionDetails transactionDetails) {
         final EventeumMessage<TransactionDetails> message =
                 createTransactionEventMessage(transactionDetails);
-        LOG.info("Sending transaction event message: " + JSON.stringify(message));
+        log.info("Sending transaction event message: {}", JSON.stringify(message));
 
         kafkaTemplate.send(
                 kafkaSettings.getTransactionEventsTopic(),
@@ -94,7 +89,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
     @Override
     public void broadcastMessage(MessageDetails messageDetails) {
         final EventeumMessage<MessageDetails> message = createMessageEventMessage(messageDetails);
-        LOG.info("Sending event message: " + JSON.stringify(message));
+        log.info("Sending event message: {}", JSON.stringify(message));
 
         kafkaTemplate.send(
                 kafkaSettings.getMessageEventsTopic(), messageDetails.getTopicId(), message);
@@ -121,7 +116,7 @@ public class KafkaBlockchainEventBroadcaster implements BlockchainEventBroadcast
 
     private String getContractEventCorrelationId(EventeumMessage<ContractEventDetails> message) {
         final Optional<ContractEventFilter> filter =
-                filterRespository.findById(message.getDetails().getFilterId());
+                filterRepository.findById(message.getDetails().getFilterId());
 
         if (!filter.isPresent() || filter.get().getCorrelationIdStrategy() == null) {
             return message.getId();

@@ -7,7 +7,7 @@ public abstract class BaseContractEventListener implements ContractEventListener
 
     protected EventStore eventStore;
 
-    public BaseContractEventListener(EventStore eventStore) {
+    BaseContractEventListener(EventStore eventStore) {
         this.eventStore = eventStore;
     }
 

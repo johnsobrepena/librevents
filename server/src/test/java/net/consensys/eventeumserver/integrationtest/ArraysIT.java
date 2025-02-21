@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(locations = "classpath:application-test-db.properties")
-public class ArraysIT extends BaseKafkaIntegrationTest {
+class ArraysIT extends BaseKafkaIntegrationTest {
 
     // "BytesValue" in hex
     private static final String BYTES_VALUE_HEX =
@@ -51,7 +51,7 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
             "0x427974657356616c756532000000000000000000000000000000000000000000";
 
     @Test
-    public void testEventWithArrays() throws Exception {
+    void testEventWithArrays() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter =
@@ -67,7 +67,7 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
 
         assertEquals(
                 registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
@@ -75,16 +75,16 @@ public class ArraysIT extends BaseKafkaIntegrationTest {
 
         final ArrayList<NumberParameter> uintArray =
                 (ArrayList<NumberParameter>)
-                        eventDetails.getNonIndexedParameters().get(0).getValue();
+                        eventDetails.getNonIndexedParameters().getFirst().getValue();
 
-        assertEquals(BigInteger.ONE, uintArray.get(0).getValue());
+        assertEquals(BigInteger.ONE, uintArray.getFirst().getValue());
         assertEquals(BigInteger.TEN, uintArray.get(1).getValue());
 
         final ArrayList<StringParameter> bytesArray =
                 (ArrayList<StringParameter>)
                         eventDetails.getNonIndexedParameters().get(1).getValue();
 
-        assertEquals(BYTES_VALUE_HEX, bytesArray.get(0).getValue());
+        assertEquals(BYTES_VALUE_HEX, bytesArray.getFirst().getValue());
         assertEquals(BYTES_VALUE2_HEX, bytesArray.get(1).getValue());
 
         assertEquals(

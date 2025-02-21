@@ -35,14 +35,15 @@ import org.web3j.abi.datatypes.generated.Bytes1;
  */
 public class Web3jUtil {
 
-    private static Map<ParameterType, TypeMapping> typeMappings =
-            new HashMap<ParameterType, TypeMapping>();
+    private static final Map<ParameterType, TypeMapping> typeMappings = new HashMap<>();
 
     private static final String ADDRESS = "ADDRESS";
     private static final String BOOL = "BOOL";
     private static final String STRING = "STRING";
     private static final String BYTE = "BYTE";
     private static final String BYTES = "BYTES";
+
+    Web3jUtil() {}
 
     static {
         addUintMappings(8, 256);
@@ -193,10 +194,6 @@ public class Web3jUtil {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static <T extends Type> TypeReference<T> createTypeReference(Class<T> clazz) {
-        return new TypeReference<T>() {};
     }
 
     @Data

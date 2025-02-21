@@ -38,7 +38,6 @@ import org.web3j.protocol.websocket.events.NewHead;
 public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionStrategy<NewHead> {
 
     private static final String PUB_SUB_EXECUTOR_NAME = "PUBSUB";
-    private final AsyncTaskService asyncService;
     private RetryTemplate retryTemplate;
 
     public PubSubBlockSubscriptionStrategy(
@@ -48,8 +47,6 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
             AsyncTaskService asyncService,
             BlockNumberService blockNumberService) {
         super(web3j, nodeName, nodeType, asyncService, blockNumberService);
-
-        this.asyncService = asyncService;
     }
 
     @Override
@@ -57,7 +54,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final BigInteger startBlock = getStartBlock();
         final DefaultBlockParameter blockParam = DefaultBlockParameter.valueOf(startBlock);
 
-        // New heads can only start from latest block so we need to obtain missing blocks first
+        // New heads can only start from the latest block, so we need to get missing blocks first
         blockSubscription =
                 web3j.replayPastBlocksFlowable(blockParam, true)
                         .doOnComplete(() -> blockSubscription = subscribeToNewHeads())
@@ -70,21 +67,20 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
         final Disposable disposable =
                 web3j.newHeadsNotifications()
                         .subscribe(
-                                newHead -> {
-                                    // Need to execute this is a seperate thread to workaround
-                                    // websocket thread
-                                    // deadlock
-                                    asyncService.execute(
-                                            ExecutorNameFactory.build(
-                                                    PUB_SUB_EXECUTOR_NAME, nodeName),
-                                            () ->
-                                                    triggerListeners(
-                                                            newHead.getParams().getResult()));
-                                });
+                                newHead ->
+                                        // Need to execute this is a separate thread to workaround
+                                        // websocket thread
+                                        // deadlock
+                                        asyncService.execute(
+                                                ExecutorNameFactory.build(
+                                                        PUB_SUB_EXECUTOR_NAME, nodeName),
+                                                () ->
+                                                        triggerListeners(
+                                                                newHead.getParams().getResult())));
 
         if (disposable.isDisposed()) {
             throw new BlockchainException(
-                    "Error when subscribing to newheads.  Disposable already disposed.");
+                    "Error when subscribing to new heads.  Disposable already disposed.");
         }
 
         return disposable;
@@ -127,7 +123,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     private EthBlock getEthBlock(String blockHash) {
         return getRetryTemplate()
                 .execute(
-                        (context) -> {
+                        context -> {
                             try {
                                 final EthBlock block =
                                         web3j.ethGetBlockByHash(blockHash, true).send();
@@ -146,7 +142,7 @@ public class PubSubBlockSubscriptionStrategy extends AbstractBlockSubscriptionSt
     }
 
     @Setter
-    private class BasicNewHead extends NewHead {
+    private static class BasicNewHead extends NewHead {
         private String hash;
 
         private String number;

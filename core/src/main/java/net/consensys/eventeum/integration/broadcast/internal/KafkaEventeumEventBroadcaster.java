@@ -14,13 +14,12 @@
 
 package net.consensys.eventeum.integration.broadcast.internal;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.*;
 import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.utils.JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
@@ -30,13 +29,12 @@ import org.springframework.kafka.core.KafkaTemplate;
  *
  * @author Craig Williams craig.williams@consensys.net
  */
+@Slf4j
 public class KafkaEventeumEventBroadcaster implements EventeumEventBroadcaster {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaEventeumEventBroadcaster.class);
+    private final KafkaTemplate<String, EventeumMessage> kafkaTemplate;
 
-    private KafkaTemplate<String, EventeumMessage> kafkaTemplate;
-
-    private KafkaSettings kafkaSettings;
+    private final KafkaSettings kafkaSettings;
 
     public KafkaEventeumEventBroadcaster(
             KafkaTemplate<String, EventeumMessage> kafkaTemplate, KafkaSettings kafkaSettings) {
@@ -82,7 +80,7 @@ public class KafkaEventeumEventBroadcaster implements EventeumEventBroadcaster {
     }
 
     private void sendMessage(EventeumMessage message) {
-        LOG.info("Sending message: " + JSON.stringify(message));
+        log.info("Sending message: {}", JSON.stringify(message));
         kafkaTemplate.send(kafkaSettings.getEventeumEventsTopic(), message.getId(), message);
     }
 }

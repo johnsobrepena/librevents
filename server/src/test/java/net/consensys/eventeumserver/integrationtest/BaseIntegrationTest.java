@@ -71,10 +71,10 @@ import org.web3j.utils.Numeric;
 import static org.junit.jupiter.api.Assertions.*;
 
 enum TopicTypesEnum {
-    transaction,
-    event,
-    block,
-    message
+    TRANSACTION,
+    EVENT,
+    BLOCK,
+    MESSAGE
 }
 
 public class BaseIntegrationTest {
@@ -121,7 +121,7 @@ public class BaseIntegrationTest {
     private String dummyEventNotOrderedFilterId;
 
     @BeforeAll
-    public static void setupEnvironment() throws Exception {
+    public static void setupEnvironment() {
         StubEventStoreService.start();
 
         final File file = new File(PARITY_VOLUME_PATH);
@@ -330,7 +330,7 @@ public class BaseIntegrationTest {
                         filter,
                         AddEventFilterResponse.class);
 
-        filter.setId(response.getBody().getId());
+        filter.setId(Objects.requireNonNull(response.getBody()).getId());
 
         registeredFilters.put(filter.getId(), filter);
         return filter;
@@ -342,11 +342,9 @@ public class BaseIntegrationTest {
                         restUrl + "/api/rest/v1/event-filter",
                         HttpMethod.GET,
                         null,
-                        new ParameterizedTypeReference<List<ContractEventFilter>>() {});
+                        new ParameterizedTypeReference<>() {});
 
-        List<ContractEventFilter> contractEventFilters = response.getBody();
-
-        return contractEventFilters;
+        return response.getBody();
     }
 
     protected String monitorTransaction(TransactionMonitoringSpec monitorSpec) {
@@ -382,7 +380,7 @@ public class BaseIntegrationTest {
         try {
             return unlock.accountUnlocked();
         } catch (NullPointerException npe) {
-            // NPE thrown in parity if account is unlocked at startup
+            // NPE thrown in parity if an account is unlocked at startup
             return true;
         }
     }
@@ -425,8 +423,7 @@ public class BaseIntegrationTest {
         return createRawSignedTransactionHex(ZERO_ADDRESS);
     }
 
-    protected String createRawSignedTransactionHex(BigInteger nonce)
-            throws ExecutionException, InterruptedException {
+    protected String createRawSignedTransactionHex(BigInteger nonce) {
         return createRawSignedTransactionHex(ZERO_ADDRESS, nonce);
     }
 
@@ -436,9 +433,7 @@ public class BaseIntegrationTest {
                         .sendAsync()
                         .get();
 
-        final BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-
-        return nonce;
+        return ethGetTransactionCount.getTransactionCount();
     }
 
     protected String createRawSignedTransactionHex(String toAddress)
@@ -447,8 +442,7 @@ public class BaseIntegrationTest {
         return createRawSignedTransactionHex(toAddress, getNonce());
     }
 
-    protected String createRawSignedTransactionHex(String toAddress, BigInteger nonce)
-            throws ExecutionException, InterruptedException {
+    protected String createRawSignedTransactionHex(String toAddress, BigInteger nonce) {
 
         final RawTransaction rawTransaction =
                 RawTransaction.createEtherTransaction(
@@ -523,12 +517,12 @@ public class BaseIntegrationTest {
                 expectedContractEventMessages,
                 getBroadcastContractEvents(),
                 true,
-                TopicTypesEnum.event);
+                TopicTypesEnum.EVENT);
     }
 
     protected void waitForBlockMessages(int expectedBlockMessages) {
         waitForMessages(
-                expectedBlockMessages, getBroadcastBlockMessages(), true, TopicTypesEnum.block);
+                expectedBlockMessages, getBroadcastBlockMessages(), true, TopicTypesEnum.BLOCK);
     }
 
     protected void waitForTransactionMessages(int expectedTransactionMessages) {
@@ -536,7 +530,7 @@ public class BaseIntegrationTest {
                 expectedTransactionMessages,
                 getBroadcastTransactionMessages(),
                 true,
-                TopicTypesEnum.transaction);
+                TopicTypesEnum.TRANSACTION);
     }
 
     protected void waitForTransactionMessages(
@@ -545,11 +539,11 @@ public class BaseIntegrationTest {
                 expectedTransactionMessages,
                 getBroadcastTransactionMessages(),
                 failOnTimeout,
-                TopicTypesEnum.transaction);
+                TopicTypesEnum.TRANSACTION);
     }
 
     protected <T> boolean waitForMessages(int expectedMessageCount, List<T> messages) {
-        return waitForMessages(expectedMessageCount, messages, true, TopicTypesEnum.message);
+        return waitForMessages(expectedMessageCount, messages, true, TopicTypesEnum.MESSAGE);
     }
 
     protected <T> boolean waitForMessages(
@@ -557,7 +551,7 @@ public class BaseIntegrationTest {
             List<T> messages,
             boolean failOnTimeout,
             TopicTypesEnum type) {
-        return waitForMessages(expectedMessageCount, messages, true, TopicTypesEnum.message, 2000);
+        return waitForMessages(expectedMessageCount, messages, failOnTimeout, type, 2000);
     }
 
     protected <T> boolean waitForMessages(

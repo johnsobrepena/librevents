@@ -40,7 +40,7 @@ public class EventeumWebSocketService extends WebSocketService {
     void onWebSocketClose() {
         try {
             super.onWebSocketClose();
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             log.warn(
                     "Error when closing websocket, this is expected during a websocket reconnection (for now).",
                     t);

@@ -52,22 +52,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DefaultSubscriptionService implements SubscriptionService {
 
-    private ChainServicesContainer chainServices;
-
-    private ContractEventFilterRepository eventFilterRepository;
-
-    private EventeumEventBroadcaster eventeumEventBroadcaster;
-
-    private List<BlockListener> blockListeners;
-
-    private RetryTemplate retryTemplate;
-
-    private Map<String, ContractEventFilter> filterSubscriptions;
-
-    private List<ContractEventListener> contractEventListeners;
-
-    private EventSyncService eventSyncService;
-
+    private final ChainServicesContainer chainServices;
+    private final ContractEventFilterRepository eventFilterRepository;
+    private final EventeumEventBroadcaster eventeumEventBroadcaster;
+    private final List<BlockListener> blockListeners;
+    private final RetryTemplate retryTemplate;
+    private final Map<String, ContractEventFilter> filterSubscriptions;
+    private final List<ContractEventListener> contractEventListeners;
+    private final EventSyncService eventSyncService;
     private SubscriptionServiceState state = SubscriptionServiceState.UNINITIALISED;
 
     @Autowired
@@ -96,9 +88,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
         if (initFilters != null && !initFilters.isEmpty()) {
             final List<ContractEventFilter> filtersWithStartBlock =
-                    initFilters.stream()
-                            .filter(filter -> filter.getStartBlock() != null)
-                            .collect(Collectors.toList());
+                    initFilters.stream().filter(filter -> filter.getStartBlock() != null).toList();
 
             if (!filtersWithStartBlock.isEmpty()) {
                 state = SubscriptionServiceState.SYNCING_EVENTS;
@@ -135,8 +125,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
     public Future<ContractEventFilter> registerContractEventFilterWithRetries(
             ContractEventFilter filter, boolean broadcast) {
         return CompletableFuture.completedFuture(
-                retryTemplate.execute(
-                        (context) -> doRegisterContractEventFilter(filter, broadcast)));
+                retryTemplate.execute(context -> doRegisterContractEventFilter(filter, broadcast)));
     }
 
     @Override
@@ -186,7 +175,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
             boolean isAlreadyRegistered = isFilterRegistered(filter);
 
             if (!isAlreadyRegistered) {
-                log.info("Registering filter: " + JSON.stringify(filter));
+                log.info("Registering filter: {}", JSON.stringify(filter));
 
                 if (filter.getStartBlock() != null) {
                     final FilterSubscription sub = registerContractEventFilter(filter);
@@ -201,7 +190,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
             filterSubscriptions.put(filter.getId(), filter);
 
             if (isAlreadyRegistered) {
-                log.info("Updated contract event filter with id: " + filter.getId());
+                log.info("Updated contract event filter with id: {}", filter.getId());
             } else if (broadcast) {
                 broadcastContractEventFilterAdded(filter);
 
@@ -209,7 +198,7 @@ public class DefaultSubscriptionService implements SubscriptionService {
             }
             return filter;
         } catch (Exception e) {
-            log.error("Error registering filter " + filter.getId(), e);
+            log.error("Error registering filter {}", filter.getId(), e);
             throw e;
         }
     }
@@ -253,21 +242,19 @@ public class DefaultSubscriptionService implements SubscriptionService {
 
         return blockchainService.registerEventListener(
                 filter,
-                contractEvent -> {
-                    contractEventListeners.forEach(
-                            listener -> triggerListener(listener, contractEvent));
-                });
+                contractEvent ->
+                        contractEventListeners.forEach(
+                                listener -> triggerListener(listener, contractEvent)));
     }
 
     private void triggerListener(
             ContractEventListener listener, ContractEventDetails contractEventDetails) {
         try {
             listener.onEvent(contractEventDetails);
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             log.error(
-                    String.format(
-                            "An error occurred when processing contractEvent with id %s",
-                            contractEventDetails.getEventIdentifier()),
+                    "An error occurred when processing contractEvent with id {}",
+                    contractEventDetails.getEventIdentifier(),
                     t);
         }
     }

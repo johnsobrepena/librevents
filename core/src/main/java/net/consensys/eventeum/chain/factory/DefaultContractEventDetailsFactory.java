@@ -18,9 +18,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.chain.settings.Node;
@@ -39,11 +39,12 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.Log;
 
+@Slf4j
 public class DefaultContractEventDetailsFactory implements ContractEventDetailsFactory {
 
-    private EventParameterConverter<Type> parameterConverter;
-    private Node node;
-    private String networkName;
+    private final EventParameterConverter<Type> parameterConverter;
+    private final Node node;
+    private final String networkName;
 
     public DefaultContractEventDetailsFactory(
             EventParameterConverter<Type> parameterConverter, Node node, String networkName) {
@@ -55,10 +56,10 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
     @Override
     public ContractEventDetails createEventDetails(
             ContractEventFilter eventFilter,
-            Log log,
+            Log logDetails,
             EthBlock ethBlock,
             TransactionReceipt transactionReceipt) {
-        ContractEventDetails eventDetails = createContractEventDetails(eventFilter, log);
+        ContractEventDetails eventDetails = createContractEventDetails(eventFilter, logDetails);
         BigInteger timeStamp = null;
 
         while (timeStamp == null) {
@@ -69,7 +70,8 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.warn("Interrupted!", e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -121,7 +123,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
         if (log.isRemoved()) {
             eventDetails.setStatus(ContractEventStatus.INVALIDATED);
         } else if (node.getBlocksToWaitForConfirmation().equals(BigInteger.ZERO)) {
-            // Set to confirmed straight away if set to zero confirmations
+            // Set confirmed straight away if set to zero confirmations
             eventDetails.setStatus(ContractEventStatus.CONFIRMED);
         } else {
             eventDetails.setStatus(ContractEventStatus.UNCONFIRMED);
@@ -132,12 +134,10 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
 
     private List<EventParameter> typeListToParameterList(List<Type> typeList) {
         if (isNullOrEmpty(typeList)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
-        return typeList.stream()
-                .map(type -> parameterConverter.convert(type))
-                .collect(Collectors.toList());
+        return typeList.stream().map(parameterConverter::convert).toList();
     }
 
     private List<Type> getNonIndexedParametersFromLog(
@@ -151,7 +151,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
                             .getNonIndexedParameters());
         }
         if (isNullOrEmpty(eventSpec.getNonIndexedParameterDefinitions())) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         List<ParameterDefinition> orderedParams =
@@ -173,7 +173,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
                             .getIndexedParameters());
         }
         if (isNullOrEmpty(eventSpec.getIndexedParameterDefinitions())) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         final List<String> encodedParameters = log.getTopics().subList(1, log.getTopics().size());
@@ -186,7 +186,7 @@ public class DefaultContractEventDetailsFactory implements ContractEventDetailsF
                                         encodedParameters.get(i),
                                         Web3jUtil.getTypeReferenceFromParameterType(
                                                 definitions.get(i).getType())))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean isNullOrEmpty(List<?> toCheck) {

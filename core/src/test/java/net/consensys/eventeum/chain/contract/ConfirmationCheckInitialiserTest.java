@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.*;
 
-public class ConfirmationCheckInitialiserTest {
+class ConfirmationCheckInitialiserTest {
 
     private static final String TX_HASH =
             "0x05ba7cdf9f35579c9e2332804a3a98bf2231572e8bfe57b3e31ed0240ae7f582";
@@ -81,7 +81,7 @@ public class ConfirmationCheckInitialiserTest {
     }
 
     @Test
-    public void testOnEventNotInvalidated() {
+    void testOnEventNotInvalidated() {
         ContractEventDetails event = createContractEventDetails(ContractEventStatus.UNCONFIRMED);
         when(event.getBlockNumber()).thenReturn(currentBlock);
         underTest.onEvent(event);
@@ -90,14 +90,14 @@ public class ConfirmationCheckInitialiserTest {
     }
 
     @Test
-    public void testOnEventInvalidated() {
+    void testOnEventInvalidated() {
         underTest.onEvent(createContractEventDetails(ContractEventStatus.INVALIDATED));
 
         verify(mockBlockSubscriptionStrategy, never()).addBlockListener(mockBlockListener);
     }
 
     @Test
-    public void testOnEventWithAExpiredBlockEvent() {
+    void testOnEventWithAExpiredBlockEvent() {
         ContractEventDetails event = createContractEventDetails(ContractEventStatus.UNCONFIRMED);
         when(event.getBlockNumber()).thenReturn(BigInteger.valueOf(1));
 

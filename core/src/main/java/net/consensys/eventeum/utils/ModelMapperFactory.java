@@ -24,28 +24,31 @@ import org.modelmapper.ModelMapper;
  *
  * @author Craig Williams craig.williams@consensys.net
  */
-public class ModelMapperFactory {
+public final class ModelMapperFactory {
 
-    private static ModelMapperFactory INSTANCE;
-    private static ModelMapper MODEL_MAPPER_INSTANCE;
+    private static final ModelMapper MODEL_MAPPER_INSTANCE = createModelMapper();
 
     private ModelMapperFactory() {}
 
-    public static ModelMapperFactory getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new ModelMapperFactory();
-        }
-
-        return INSTANCE;
+    /**
+     * Provides a shared, pre-configured ModelMapper instance.
+     *
+     * @return a singleton ModelMapper instance.
+     */
+    public static ModelMapper getModelMapper() {
+        return MODEL_MAPPER_INSTANCE;
     }
 
-    public ModelMapper getModelMapper() {
-        if (MODEL_MAPPER_INSTANCE == null) {
-            MODEL_MAPPER_INSTANCE = new ModelMapper();
-            MODEL_MAPPER_INSTANCE.addConverter(new EthBlockToWeb3jBlockConverter());
-            MODEL_MAPPER_INSTANCE.addConverter(new BlockResponseToHederaBlockConverter());
-            MODEL_MAPPER_INSTANCE.addConverter(new ContractResultResponseToTransactionConverter());
-        }
-        return MODEL_MAPPER_INSTANCE;
+    /**
+     * Creates and configures a ModelMapper instance.
+     *
+     * @return a fully configured ModelMapper.
+     */
+    private static ModelMapper createModelMapper() {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.addConverter(new EthBlockToWeb3jBlockConverter());
+        modelMapper.addConverter(new BlockResponseToHederaBlockConverter());
+        modelMapper.addConverter(new ContractResultResponseToTransactionConverter());
+        return modelMapper;
     }
 }

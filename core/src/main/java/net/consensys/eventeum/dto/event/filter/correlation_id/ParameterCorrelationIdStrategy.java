@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package net.consensys.eventeum.dto.event.filter.correlationId;
+package net.consensys.eventeum.dto.event.filter.correlation_id;
 
 import jakarta.persistence.Column;
 import lombok.Data;

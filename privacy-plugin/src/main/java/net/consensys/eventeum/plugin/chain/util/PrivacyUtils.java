@@ -19,6 +19,8 @@ public class PrivacyUtils {
     public static final String PRIVACY_GROUP_ID_KEY = "privacyGroupID";
     public static final String PRIVACY_PRECOMPILED_ADDRESS = "privacyPrecompiledAddress";
 
+    PrivacyUtils() {}
+
     public static PrivacyConfNode buildPrivacyConfNodeFromExtension(Map<String, Object> extension) {
         if (extension == null) {
             return null;
@@ -52,7 +54,7 @@ public class PrivacyUtils {
             PrivateTransaction privateTransctionReceipt) {
         org.web3j.protocol.core.methods.response.Transaction tx =
                 new org.web3j.protocol.core.methods.response.Transaction();
-        final ModelMapper modelMapper = ModelMapperFactory.getInstance().getModelMapper();
+        final ModelMapper modelMapper = ModelMapperFactory.getModelMapper();
 
         modelMapper.map(privateTransctionReceipt, tx);
 

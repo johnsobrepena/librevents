@@ -56,19 +56,17 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
                         () -> {
                             final NodeServices nodeServices =
                                     this.chainServices.getNodeServices(block.getNodeName());
-                            switch (NodeType.valueOf(nodeServices.getNodeType())) {
-                                case MIRROR:
-                                    this.processLogsInMirrorNodeBlock(block, contractEventFilters);
-                                    break;
-                                case NORMAL:
-                                    contractEventFilters.forEach(
-                                            filter ->
-                                                    processLogsForFilter(
-                                                            filter,
-                                                            block,
-                                                            nodeServices.getBlockchainService()));
-                                    break;
+                            final NodeType nodeType = NodeType.valueOf(nodeServices.getNodeType());
+                            if (nodeType == NodeType.MIRROR) {
+                                this.processLogsInMirrorNodeBlock(block, contractEventFilters);
+                                return;
                             }
+                            contractEventFilters.forEach(
+                                    filter ->
+                                            processLogsForFilter(
+                                                    filter,
+                                                    block,
+                                                    nodeServices.getBlockchainService()));
                         })
                 .join();
     }
@@ -104,9 +102,7 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
                 ((HederaBlock) block).getContractResults();
         if (contractResultResponseList != null && !contractResultResponseList.isEmpty()) {
             contractResultResponseList.forEach(
-                    res -> {
-                        processTransactionData(hederaService, res, contractEventFilters);
-                    });
+                    res -> processTransactionData(hederaService, res, contractEventFilters));
         }
     }
 
@@ -134,11 +130,10 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
             ContractEventListener listener, ContractEventDetails contractEventDetails) {
         try {
             listener.onEvent(contractEventDetails);
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
             log.error(
-                    String.format(
-                            "An error occurred when processing contractEvent with id %s",
-                            contractEventDetails.getEventIdentifier()),
+                    "An error occurred when processing contractEvent with id {}",
+                    contractEventDetails.getEventIdentifier(),
                     t);
             throw t;
         }
@@ -177,7 +172,7 @@ public class DefaultContractEventProcessor implements ContractEventProcessor {
 
     private boolean isEventFilterInTopic(HederaLogResponse log, ContractEventFilter filter) {
         String eventSignature = Web3jUtil.getSignature(filter.getEventSpecification());
-        return log.getTopics().get(0).equals(eventSignature);
+        return log.getTopics().getFirst().equals(eventSignature);
     }
 
     private boolean isContractFromEventFilter(HederaLogResponse log, ContractEventFilter filter) {

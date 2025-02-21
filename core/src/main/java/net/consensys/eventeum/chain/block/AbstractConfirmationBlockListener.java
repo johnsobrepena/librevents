@@ -43,7 +43,7 @@ public abstract class AbstractConfirmationBlockListener<T extends TransactionBas
     private BigInteger missingTxBlockLimit;
     private BigInteger currentNumBlocksToWaitBeforeInvalidating;
 
-    public AbstractConfirmationBlockListener(
+    protected AbstractConfirmationBlockListener(
             T blockchainEvent,
             BlockchainService blockchainService,
             BlockSubscriptionStrategy blockSubscription,
@@ -98,14 +98,13 @@ public abstract class AbstractConfirmationBlockListener<T extends TransactionBas
 
         if (!receipt.getBlockHash().equals(blockchainEvent.getBlockHash())) {
             orphanReason =
-                    "Expected blockhash "
-                            + blockchainEvent.getBlockHash()
-                            + ", received "
-                            + receipt.getBlockHash();
+                    String.format(
+                            "Expected block hash %s, received %s",
+                            blockchainEvent.getBlockHash(), receipt.getBlockHash());
         }
 
         if (orphanReason != null) {
-            LOG.info("Orphan event detected: " + orphanReason);
+            LOG.info("Orphan event detected: {}", orphanReason);
             return true;
         }
 
@@ -146,9 +145,9 @@ public abstract class AbstractConfirmationBlockListener<T extends TransactionBas
     protected void broadcastEvent(T event) {
         if (!isInvalidated.get()) {
             LOG.debug(
-                    String.format(
-                            "Sending confirmed event for %s event: %s",
-                            event.getClass().getSimpleName(), getEventIdentifier(blockchainEvent)));
+                    "Sending confirmed event for {} event: {}",
+                    event.getClass().getSimpleName(),
+                    getEventIdentifier(blockchainEvent));
             broadcast(event);
         }
     }

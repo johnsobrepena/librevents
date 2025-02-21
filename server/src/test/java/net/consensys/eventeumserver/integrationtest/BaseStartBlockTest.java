@@ -65,7 +65,7 @@ public abstract class BaseStartBlockTest extends BaseKafkaIntegrationTest {
 
         waitForBlockMessages(5);
 
-        assertEquals(BigInteger.valueOf(3), getBroadcastBlockMessages().get(0).getNumber());
+        assertEquals(BigInteger.valueOf(3), getBroadcastBlockMessages().getFirst().getNumber());
         assertEquals(BigInteger.valueOf(4), getBroadcastBlockMessages().get(1).getNumber());
         assertEquals(BigInteger.valueOf(5), getBroadcastBlockMessages().get(2).getNumber());
         assertEquals(BigInteger.valueOf(6), getBroadcastBlockMessages().get(3).getNumber());
@@ -85,9 +85,12 @@ public abstract class BaseStartBlockTest extends BaseKafkaIntegrationTest {
         for (int i = 0; i < numBlocks; i++) {
             web3j.ethSendTransaction(
                             Transaction.createEtherTransaction(
-                                    web3j.ethAccounts().send().getAccounts().get(0),
+                                    web3j.ethAccounts().send().getAccounts().getFirst(),
                                     web3j.ethGetTransactionCount(
-                                                    web3j.ethAccounts().send().getAccounts().get(0),
+                                                    web3j.ethAccounts()
+                                                            .send()
+                                                            .getAccounts()
+                                                            .getFirst(),
                                                     DefaultBlockParameterName.fromString("latest"))
                                             .send()
                                             .getTransactionCount(),

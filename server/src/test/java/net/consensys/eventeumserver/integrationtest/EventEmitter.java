@@ -220,9 +220,9 @@ public class EventEmitter extends Contract {
             DummyEventBytes16EventResponse typedResponse = new DummyEventBytes16EventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.indexedBytes16 =
-                    (byte[]) eventValues.getIndexedValues().get(0).getValue();
+                    (byte[]) eventValues.getIndexedValues().getFirst().getValue();
             typedResponse.bytes16Value =
-                    (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
+                    (byte[]) eventValues.getNonIndexedValues().getFirst().getValue();
             responses.add(typedResponse);
         }
         return responses;
@@ -241,10 +241,17 @@ public class EventEmitter extends Contract {
                                         new DummyEventBytes16EventResponse();
                                 typedResponse.log = log;
                                 typedResponse.indexedBytes16 =
-                                        (byte[]) eventValues.getIndexedValues().get(0).getValue();
+                                        (byte[])
+                                                eventValues
+                                                        .getIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.bytes16Value =
                                         (byte[])
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 return typedResponse;
                             }
                         });
@@ -266,11 +273,12 @@ public class EventEmitter extends Contract {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             DummyEventEventResponse typedResponse = new DummyEventEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.indexedBytes = (byte[]) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.indexedBytes =
+                    (byte[]) eventValues.getIndexedValues().getFirst().getValue();
             typedResponse.indexedAddress =
                     (String) eventValues.getIndexedValues().get(1).getValue();
             typedResponse.uintValue =
-                    (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                    (BigInteger) eventValues.getNonIndexedValues().getFirst().getValue();
             typedResponse.stringValue =
                     (String) eventValues.getNonIndexedValues().get(1).getValue();
             typedResponse.enumValue =
@@ -292,12 +300,19 @@ public class EventEmitter extends Contract {
                                         new DummyEventEventResponse();
                                 typedResponse.log = log;
                                 typedResponse.indexedBytes =
-                                        (byte[]) eventValues.getIndexedValues().get(0).getValue();
+                                        (byte[])
+                                                eventValues
+                                                        .getIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.indexedAddress =
                                         (String) eventValues.getIndexedValues().get(1).getValue();
                                 typedResponse.uintValue =
                                         (BigInteger)
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.stringValue =
                                         (String)
                                                 eventValues.getNonIndexedValues().get(1).getValue();
@@ -326,11 +341,12 @@ public class EventEmitter extends Contract {
             DummyEventNotOrderedEventResponse typedResponse =
                     new DummyEventNotOrderedEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.indexedBytes = (byte[]) eventValues.getIndexedValues().get(0).getValue();
+            typedResponse.indexedBytes =
+                    (byte[]) eventValues.getIndexedValues().getFirst().getValue();
             typedResponse.indexedAddress =
                     (String) eventValues.getIndexedValues().get(1).getValue();
             typedResponse.uintValue =
-                    (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
+                    (BigInteger) eventValues.getNonIndexedValues().getFirst().getValue();
             typedResponse.stringValue =
                     (String) eventValues.getNonIndexedValues().get(1).getValue();
             typedResponse.enumValue =
@@ -355,12 +371,19 @@ public class EventEmitter extends Contract {
                                         new DummyEventNotOrderedEventResponse();
                                 typedResponse.log = log;
                                 typedResponse.indexedBytes =
-                                        (byte[]) eventValues.getIndexedValues().get(0).getValue();
+                                        (byte[])
+                                                eventValues
+                                                        .getIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.indexedAddress =
                                         (String) eventValues.getIndexedValues().get(1).getValue();
                                 typedResponse.uintValue =
                                         (BigInteger)
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.stringValue =
                                         (String)
                                                 eventValues.getNonIndexedValues().get(1).getValue();
@@ -389,7 +412,7 @@ public class EventEmitter extends Contract {
             DummyEventArrayEventResponse typedResponse = new DummyEventArrayEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.uintArray =
-                    (List<BigInteger>) eventValues.getNonIndexedValues().get(0).getValue();
+                    (List<BigInteger>) eventValues.getNonIndexedValues().getFirst().getValue();
             typedResponse.bytesArray =
                     (List<byte[]>) eventValues.getNonIndexedValues().get(1).getValue();
             responses.add(typedResponse);
@@ -410,7 +433,10 @@ public class EventEmitter extends Contract {
                                 typedResponse.log = log;
                                 typedResponse.uintArray =
                                         (List<BigInteger>)
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.bytesArray =
                                         (List<byte[]>)
                                                 eventValues.getNonIndexedValues().get(1).getValue();
@@ -437,11 +463,11 @@ public class EventEmitter extends Contract {
                     new DummyEventAdditionalTypesEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.uint16Value =
-                    (BigInteger) eventValues.getIndexedValues().get(0).getValue();
+                    (BigInteger) eventValues.getIndexedValues().getFirst().getValue();
             typedResponse.int64Value =
                     (BigInteger) eventValues.getIndexedValues().get(1).getValue();
             typedResponse.addressArray =
-                    (List<String>) eventValues.getNonIndexedValues().get(0).getValue();
+                    (List<String>) eventValues.getNonIndexedValues().getFirst().getValue();
             typedResponse.byteValue = (byte[]) eventValues.getNonIndexedValues().get(1).getValue();
             typedResponse.boolValue = (Boolean) eventValues.getNonIndexedValues().get(2).getValue();
             responses.add(typedResponse);
@@ -465,13 +491,19 @@ public class EventEmitter extends Contract {
                                 typedResponse.log = log;
                                 typedResponse.uint16Value =
                                         (BigInteger)
-                                                eventValues.getIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.int64Value =
                                         (BigInteger)
                                                 eventValues.getIndexedValues().get(1).getValue();
                                 typedResponse.addressArray =
                                         (List<String>)
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.byteValue =
                                         (byte[])
                                                 eventValues.getNonIndexedValues().get(1).getValue();

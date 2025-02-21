@@ -56,11 +56,11 @@ public class EventStoreLatestBlockUpdater implements BlockListener {
         chainServicesContainer
                 .getNodeNames()
                 .forEach(
-                        node -> {
-                            this.latestBlockMap.put(
-                                    node,
-                                    valueMonitor.monitor("latestBlock", node, new AtomicLong(0)));
-                        });
+                        node ->
+                                this.latestBlockMap.put(
+                                        node,
+                                        valueMonitor.monitor(
+                                                "latestBlock", node, new AtomicLong(0))));
     }
 
     @Override

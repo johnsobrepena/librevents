@@ -21,12 +21,15 @@ import net.consensys.eventeum.dto.event.parameter.NumberParameter;
 import net.consensys.eventeum.dto.event.serializer.NumberParameterSerializer;
 
 /**
- * Useful JSON based utility methods.
+ * Useful JSON-based utility methods.
  *
  * @author Craig Williams craig.williams@consensys.net
  */
 public class JSON {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    JSON() {}
 
     public static String stringify(Object object) {
         try {

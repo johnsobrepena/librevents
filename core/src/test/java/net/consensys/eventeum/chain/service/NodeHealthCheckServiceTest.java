@@ -75,7 +75,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testEverythingUpHappyPath() {
+    void testEverythingUpHappyPath() {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
@@ -84,7 +84,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeDisconnectedReconnectSuccess() {
+    void testNodeDisconnectedReconnectSuccess() {
         wireBlockchainServiceDown(false, false);
         wireReconnectResult(true);
         underTest.checkHealth();
@@ -94,7 +94,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeDisconnectedReconnectFailure() {
+    void testNodeDisconnectedReconnectFailure() {
         wireBlockchainServiceDown(false, false);
         wireReconnectResult(false);
         underTest.checkHealth();
@@ -104,7 +104,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeStaysDown() {
+    void testNodeStaysDown() {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
@@ -117,7 +117,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeComesBackUpNotSubscribed() {
+    void testNodeComesBackUpNotSubscribed() {
         wireBlockchainServiceDown(false, false);
         underTest.checkHealth();
 
@@ -133,7 +133,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeFromSubscribedToConnected() {
+    void testNodeFromSubscribedToConnected() {
         wireBlockchainServiceUp(true);
         underTest.checkHealth();
 
@@ -149,7 +149,7 @@ public class NodeHealthCheckServiceTest {
     }
 
     @Test
-    public void testNodeComesBackUpAndStaysUp() {
+    void testNodeComesBackUpAndStaysUp() {
         wireBlockchainServiceDown(true, false);
 
         underTest.checkHealth();

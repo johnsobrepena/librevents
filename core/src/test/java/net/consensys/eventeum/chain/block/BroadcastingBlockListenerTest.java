@@ -28,7 +28,7 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class BroadcastingBlockListenerTest {
+class BroadcastingBlockListenerTest {
 
     private BroadcastingBlockListener underTest;
 
@@ -43,7 +43,7 @@ public class BroadcastingBlockListenerTest {
     }
 
     @Test
-    public void testOnBlock() {
+    void testOnBlock() {
         final Block block = Mockito.mock(Block.class);
         when(block.getNumber()).thenReturn(BigInteger.TEN);
         underTest.onBlock(block);

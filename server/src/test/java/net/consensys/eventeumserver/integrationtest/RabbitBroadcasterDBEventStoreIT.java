@@ -14,24 +14,25 @@
 
 package net.consensys.eventeumserver.integrationtest;
 
-import jakarta.annotation.PostConstruct;
+import java.util.Collections;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.EventeumMessage;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.amqp.core.ExchangeTypes;
-import org.springframework.amqp.rabbit.annotation.Exchange;
-import org.springframework.amqp.rabbit.annotation.Queue;
-import org.springframework.amqp.rabbit.annotation.QueueBinding;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.testcontainers.containers.FixedHostPortGenericContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 @ExtendWith(SpringExtension.class)
@@ -40,75 +41,85 @@ import org.testcontainers.containers.wait.strategy.Wait;
 @TestPropertySource(locations = "classpath:application-test-db-rabbit.properties")
 public class RabbitBroadcasterDBEventStoreIT extends BroadcasterSmokeTest {
 
-    public static FixedHostPortGenericContainer rabbitContainer;
+    @Autowired private ConnectionFactory connectionFactory;
 
-    private boolean isFirstTest = true;
+    @Autowired private ObjectMapper objectMapper;
+
+    @BeforeAll
+    public static void startRabbitContainer() {
+        RabbitMQContainer rabbitContainer =
+                new RabbitMQContainer("rabbitmq:3.7.25-management-alpine");
+        rabbitContainer.withExchange("ThisIsAExchange", "topic");
+        rabbitContainer.withQueue("contractEvents");
+        rabbitContainer.withQueue("transactionEvents");
+        rabbitContainer.withQueue("blockEvents");
+        rabbitContainer.withBinding(
+                "ThisIsAExchange",
+                "contractEvents",
+                Collections.emptyMap(),
+                "contractEvents.#",
+                "queue");
+        rabbitContainer.withBinding(
+                "ThisIsAExchange",
+                "transactionEvents",
+                Collections.emptyMap(),
+                "transactionEvents.#",
+                "queue");
+        rabbitContainer.withBinding(
+                "ThisIsAExchange", "blockEvents", Collections.emptyMap(), "blockEvents.#", "queue");
+        rabbitContainer.start();
+        rabbitContainer.waitingFor(Wait.defaultWaitStrategy());
+
+        System.setProperty("RABBITMQ_HOST", rabbitContainer.getHost());
+        System.setProperty("RABBITMQ_PORT", String.valueOf(rabbitContainer.getAmqpPort()));
+    }
 
     @BeforeEach
-    public void waitForRabbitInit() throws InterruptedException {
-        // TODO Figure out how to verify when rabbitMQ has started we we don't have to sleep
-        if (isFirstTest) {
-            Thread.sleep(10000);
-        }
+    public void setup() {
+        createListener(
+                "contractEvents",
+                message -> {
+                    if (message.getDetails() instanceof ContractEventDetails) {
+                        onContractEventMessageReceived((ContractEventDetails) message.getDetails());
+                    } else if (message.getDetails() instanceof TransactionDetails) {
+                        onTransactionMessageReceived((TransactionDetails) message.getDetails());
+                    }
+                });
 
-        isFirstTest = false;
+        createListener(
+                "transactionEvents",
+                message -> {
+                    onTransactionMessageReceived((TransactionDetails) message.getDetails());
+                });
+
+        createListener(
+                "blockEvents",
+                message -> {
+                    onBlockMessageReceived((BlockDetails) message.getDetails());
+                });
     }
 
-    @RabbitListener(
-            bindings =
-                    @QueueBinding(
-                            key = "contractEvents.*",
-                            value = @Queue("contractEvents"),
-                            exchange =
-                                    @Exchange(
-                                            value = "ThisIsAExchange",
-                                            type = ExchangeTypes.TOPIC)))
-    public void onContractEvent(EventeumMessage message) {
-        if (message.getDetails() instanceof ContractEventDetails) {
-            onContractEventMessageReceived((ContractEventDetails) message.getDetails());
-        } else if (message.getDetails() instanceof TransactionDetails) {
-            onTransactionMessageReceived((TransactionDetails) message.getDetails());
-        }
-    }
+    private void createListener(
+            String queueName, java.util.function.Consumer<EventeumMessage> eventHandler) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setQueueNames(queueName);
 
-    @RabbitListener(
-            bindings =
-                    @QueueBinding(
-                            key = "transactionEvents.*",
-                            value = @Queue("transactionEvents"),
-                            exchange =
-                                    @Exchange(
-                                            value = "ThisIsAExchange",
-                                            type = ExchangeTypes.TOPIC)))
-    public void onTransactionEvent(EventeumMessage message) {
-        onTransactionMessageReceived((TransactionDetails) message.getDetails());
-    }
+        MessageListenerAdapter adapter =
+                new MessageListenerAdapter(
+                        new Object() {
+                            public void handleMessage(byte[] body) {
+                                try {
+                                    EventeumMessage message =
+                                            objectMapper.readValue(body, EventeumMessage.class);
+                                    eventHandler.accept(message);
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        });
 
-    @RabbitListener(
-            bindings =
-                    @QueueBinding(
-                            key = "blockEvents",
-                            value = @Queue("blockEvents"),
-                            exchange =
-                                    @Exchange(
-                                            value = "ThisIsAExchange",
-                                            type = ExchangeTypes.TOPIC)))
-    public void onBlockEvent(EventeumMessage message) {
-        onBlockMessageReceived((BlockDetails) message.getDetails());
-    }
-
-    @TestConfiguration
-    static class RabbitConfig {
-
-        @PostConstruct
-        void initRabbit() {
-            if (RabbitBroadcasterDBEventStoreIT.rabbitContainer == null) {
-                RabbitBroadcasterDBEventStoreIT.rabbitContainer =
-                        new FixedHostPortGenericContainer("rabbitmq:3.6.14-management");
-                RabbitBroadcasterDBEventStoreIT.rabbitContainer.waitingFor(Wait.forListeningPort());
-                RabbitBroadcasterDBEventStoreIT.rabbitContainer.withFixedExposedPort(5672, 5672);
-                RabbitBroadcasterDBEventStoreIT.rabbitContainer.start();
-            }
-        }
+        adapter.setDefaultListenerMethod("handleMessage");
+        container.setMessageListener(adapter);
+        container.start();
     }
 }

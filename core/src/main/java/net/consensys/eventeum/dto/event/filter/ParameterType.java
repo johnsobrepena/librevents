@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 import net.consensys.eventeum.service.exception.ValidationException;
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 
 /**
  * Supported event parameter types.
@@ -58,7 +58,7 @@ public class ParameterType {
 
     @JsonValue @Getter private String type;
 
-    @PersistenceConstructor
+    @PersistenceCreator
     public ParameterType(String type) {
         setType(type);
     }

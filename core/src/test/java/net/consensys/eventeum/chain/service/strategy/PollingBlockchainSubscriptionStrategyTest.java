@@ -105,14 +105,14 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testEthSubscribe() {
+    void testEthSubscribe() {
         final Disposable returnedSubscription = underTest.subscribe();
 
         assertFalse(returnedSubscription.isDisposed());
     }
 
     @Test
-    public void testHederaSubscribe() {
+    void testHederaSubscribe() {
         underTest =
                 new PollingBlockSubscriptionStrategy(
                         mockWeb3j,
@@ -129,7 +129,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testUnsubscribe() {
+    void testUnsubscribe() {
         final Disposable returnedSubscription = underTest.subscribe();
 
         assertFalse(returnedSubscription.isDisposed());
@@ -140,14 +140,14 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testAddBlockListener() {
+    void testAddBlockListener() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
         assertNotNull(block);
     }
 
     @Test
-    public void testRemoveBlockListener() {
+    void testRemoveBlockListener() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
         assertNotNull(block);
@@ -161,7 +161,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockHashPassedToListenerIsCorrect() {
+    void testBlockHashPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -169,7 +169,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockNumberPassedToListenerIsCorrect() {
+    void testBlockNumberPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -177,7 +177,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockTimestampPassedToListenerIsCorrect() {
+    void testBlockTimestampPassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 
@@ -185,7 +185,7 @@ public class PollingBlockchainSubscriptionStrategyTest {
     }
 
     @Test
-    public void testBlockNodeNamePassedToListenerIsCorrect() {
+    void testBlockNodeNamePassedToListenerIsCorrect() {
         underTest.subscribe();
         final Block block = doRegisterBlockListenerAndTrigger();
 

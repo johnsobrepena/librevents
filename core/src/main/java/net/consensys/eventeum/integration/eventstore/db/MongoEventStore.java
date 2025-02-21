@@ -42,13 +42,13 @@ import org.springframework.data.mongodb.core.query.Query;
  */
 public class MongoEventStore implements SaveableEventStore {
 
-    private ContractEventDetailsRepository eventDetailsRepository;
+    private final ContractEventDetailsRepository eventDetailsRepository;
 
-    private MessageDetailsRepository messageDetailsRepository;
+    private final MessageDetailsRepository messageDetailsRepository;
 
-    private LatestBlockRepository latestBlockRepository;
+    private final LatestBlockRepository latestBlockRepository;
 
-    private MongoTemplate mongoTemplate;
+    private final MongoTemplate mongoTemplate;
 
     public MongoEventStore(
             ContractEventDetailsRepository eventDetailsRepository,
@@ -76,8 +76,8 @@ public class MongoEventStore implements SaveableEventStore {
 
         final long totalResults = mongoTemplate.count(query, ContractEventDetails.class);
 
-        // Set pagination on query
-        query.skip(pagination.getPageNumber() * pagination.getPageSize())
+        // Set pagination on a query
+        query.skip((long) pagination.getPageNumber() * pagination.getPageSize())
                 .limit(pagination.getPageSize());
 
         final List<ContractEventDetails> results =
@@ -88,8 +88,6 @@ public class MongoEventStore implements SaveableEventStore {
 
     @Override
     public Optional<LatestBlock> getLatestBlockForNode(String nodeName) {
-        final Iterable<LatestBlock> blocks = latestBlockRepository.findAll();
-
         return latestBlockRepository.findById(nodeName);
     }
 

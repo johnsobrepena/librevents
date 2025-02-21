@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.*;
 
-public class EventBlockUpdaterListenerTest {
+class EventBlockUpdaterListenerTest {
 
     private static final String ADDRESS = "0x2250683dbe4e0b90395c3c5d7def87784a2b916c";
 
@@ -39,7 +39,7 @@ public class EventBlockUpdaterListenerTest {
     }
 
     @Test
-    public void testOnEvent() {
+    void testOnEvent() {
         final ContractEventDetails eventDetails = mock(ContractEventDetails.class);
         when(eventDetails.getEventSpecificationSignature()).thenReturn("spec");
         when(eventDetails.getBlockNumber()).thenReturn(BigInteger.TEN);

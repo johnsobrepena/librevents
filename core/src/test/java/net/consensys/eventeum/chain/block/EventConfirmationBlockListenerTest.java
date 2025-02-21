@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.*;
 
-public class EventConfirmationBlockListenerTest {
+class EventConfirmationBlockListenerTest {
 
     private static final BigInteger BLOCKS_TO_WAIT = BigInteger.valueOf(10);
     private static final BigInteger BLOCKS_TO_WAIT_MISSING = BigInteger.valueOf(100);
@@ -91,7 +91,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testOnBlockWhenUnderBlockThresholdNoOrphan() {
+    void testOnBlockWhenUnderBlockThresholdNoOrphan() {
         wireLog();
         underTest.onBlock(createBlockDetails(1002));
 
@@ -99,7 +99,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testOnBlockWhenUnderBlockThresholdLogRemoved() {
+    void testOnBlockWhenUnderBlockThresholdLogRemoved() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
         underTest.onBlock(createBlockDetails(1003));
@@ -109,7 +109,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testOnBlockWhenUnderBlockThresholdBlockHashChanged() {
+    void testOnBlockWhenUnderBlockThresholdBlockHashChanged() {
         wireLog(true, EVENT_BLOCK_HASH + "changed", EVENT_LOG_INDEX);
         underTest.onBlock(createBlockDetails(1002));
         underTest.onBlock(createBlockDetails(1003));
@@ -119,7 +119,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testOnBlockWhenUnderBlockThresholdNoMatchingLog() {
+    void testOnBlockWhenUnderBlockThresholdNoMatchingLog() {
         wireLog(true, EVENT_BLOCK_HASH, EVENT_LOG_INDEX.add(BigInteger.ONE));
         underTest.onBlock(createBlockDetails(1002));
         underTest.onBlock(createBlockDetails(1003));
@@ -129,7 +129,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testOnBlockWhenOverBlockThreshold() {
+    void testOnBlockWhenOverBlockThreshold() {
         wireLog();
         underTest.onBlock(createBlockDetails(1011));
 
@@ -137,7 +137,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testTransactionDoesntExistUnderThreshold() {
+    void testTransactionDoesntExistUnderThreshold() {
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(null);
 
         underTest.onBlock(createBlockDetails(1005));
@@ -147,7 +147,7 @@ public class EventConfirmationBlockListenerTest {
     }
 
     @Test
-    public void testTransactionDoesntExistOverThreshold() {
+    void testTransactionDoesntExistOverThreshold() {
         when(mockBlockchainService.getTransactionReceipt(EVENT_TX_HASH)).thenReturn(null);
 
         underTest.onBlock(createBlockDetails(1005));

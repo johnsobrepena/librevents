@@ -21,22 +21,22 @@ import org.springframework.test.context.TestPropertySource;
 public class HttpServiceRestartRecoveryIT extends ServiceRestartRecoveryTests {
 
     @Test
-    public void broadcastMissedBlocksOnStartupAfterFailureTest() throws Exception {
+    void broadcastMissedBlocksOnStartupAfterFailureTest() throws Exception {
         doBroadcastMissedBlocksOnStartupAfterFailureTest();
     }
 
     @Test
-    public void broadcastUnconfirmedEventAfterFailureTest() throws Exception {
+    void broadcastUnconfirmedEventAfterFailureTest() throws Exception {
         doBroadcastUnconfirmedEventAfterFailureTest();
     }
 
     @Test
-    public void broadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
+    void broadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
         doBroadcastConfirmedEventAfter12BlocksWhenDownTest();
     }
 
     @Test
-    public void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
+    void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
         doBroadcastTransactionUnconfirmedAfterFailureTest();
     }
 }

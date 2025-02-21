@@ -25,4 +25,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BaseConfiguration {
     public static final String BASE_PACKAGE = "net.consensys.eventeum";
+
+    BaseConfiguration() {}
 }

@@ -19,7 +19,6 @@ import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.message.MessageDetails;
 import net.consensys.eventeum.dto.transaction.TransactionDetails;
 import net.consensys.eventeum.integration.broadcast.BroadcastException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
@@ -51,7 +50,7 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
     @Override
     public void broadcastNewBlock(BlockDetails block) {
         retryTemplate.execute(
-                (context) -> {
+                context -> {
                     final ResponseEntity<Void> response =
                             restTemplate.postForEntity(
                                     settings.getBlockEventsUrl(), block, Void.class);
@@ -64,7 +63,7 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
     @Override
     public void broadcastContractEvent(ContractEventDetails eventDetails) {
         retryTemplate.execute(
-                (context) -> {
+                context -> {
                     final ResponseEntity<Void> response =
                             restTemplate.postForEntity(
                                     settings.getContractEventsUrl(), eventDetails, Void.class);
@@ -77,7 +76,7 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
     @Override
     public void broadcastTransaction(TransactionDetails transactionDetails) {
         retryTemplate.execute(
-                (context) -> {
+                context -> {
                     final ResponseEntity<Void> response =
                             restTemplate.postForEntity(
                                     settings.getTransactionEventsUrl(),
@@ -92,7 +91,7 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
     @Override
     public void broadcastMessage(MessageDetails messageDetails) {
         retryTemplate.execute(
-                (context) -> {
+                context -> {
                     final ResponseEntity<Void> response =
                             restTemplate.postForEntity(
                                     settings.getMessageEventsUrl(), messageDetails, Void.class);
@@ -103,7 +102,7 @@ public class HttpBlockchainEventBroadcaster implements BlockchainEventBroadcaste
     }
 
     private void checkForSuccessResponse(ResponseEntity<Void> response) {
-        if (response.getStatusCode() != HttpStatus.OK) {
+        if (!response.getStatusCode().is2xxSuccessful()) {
             throw new BroadcastException(
                     String.format(
                             "Received a %s response when broadcasting via http",

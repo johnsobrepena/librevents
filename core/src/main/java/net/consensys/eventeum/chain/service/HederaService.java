@@ -2,10 +2,7 @@ package net.consensys.eventeum.chain.service;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -66,30 +63,18 @@ public class HederaService implements BlockchainService {
     private static final String NEXT = "next";
 
     private final ContractEventDetailsFactory eventDetailsFactory;
-
     private final EventStoreService eventStoreService;
-
     private final OkHttpClient okHttpClient;
-
     private final ObjectMapper objectMapper;
-
     private final String nodeName;
-
     private final String nodeUrl;
-
     private final Map<String, String> nodeHeaders;
-
     private final String nodeLimitPerRequest;
-
     private final BigInteger maxRetries;
-
     private final ModelMapper modelMapper;
     private final ScheduledExecutorService scheduledExecutorService;
-
     private final EventBlockManagementService blockManagement;
-
     private final AsyncTaskService asyncTaskService;
-
     private final SubscriptionService subscriptionService;
 
     public HederaService(
@@ -131,10 +116,7 @@ public class HederaService implements BlockchainService {
         Response response = this.okHttpClient.newCall(request).execute();
         String message;
         switch (HttpStatus.valueOf(response.code())) {
-            case OK:
-            case CREATED:
-            case ACCEPTED:
-            case PARTIAL_CONTENT:
+            case OK, CREATED, ACCEPTED, PARTIAL_CONTENT:
                 R responseBody =
                         this.objectMapper
                                 .reader()
@@ -143,8 +125,7 @@ public class HederaService implements BlockchainService {
                                 .readValue(response.body().string());
                 response.close();
                 return responseBody;
-            case CONFLICT:
-            case BAD_REQUEST:
+            case CONFLICT, BAD_REQUEST:
                 message = String.format("Invalid request - %s", request.url().url());
                 String bodyText = response.body() != null ? response.body().string() : null;
                 boolean responseEntityId =
@@ -170,7 +151,8 @@ public class HederaService implements BlockchainService {
                         log.info("Too many request, waiting for retry...");
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        log.warn("Interrupted!", e);
+                        Thread.currentThread().interrupt();
                     }
                 }
                 log.error(message);
@@ -199,7 +181,7 @@ public class HederaService implements BlockchainService {
 
             if (response == null) {
                 response = new ContractResultsResponse();
-                response.setResults(new ArrayList<ContractResultResponse>());
+                response.setResults(new ArrayList<>());
             }
         } catch (NotFoundException | IOException ignored) {
             log.debug(
@@ -222,7 +204,7 @@ public class HederaService implements BlockchainService {
     }
 
     /**
-     * Call for contract result (single)
+     * Call for a contract result (single)
      *
      * @param transactionId Transaction identifier for filter
      * @return Returns an object of ContractResultResponse
@@ -275,8 +257,7 @@ public class HederaService implements BlockchainService {
      * @return Returns a single ContractResultResponse
      */
     private ContractResultResponse callToContractResult(
-            ContractResultResponse res, BigInteger tries)
-            throws MirrorUnexpectedException, InterruptedException {
+            ContractResultResponse res, BigInteger tries) throws MirrorUnexpectedException {
         ContractResultResponse response = null;
         try {
             tries = tries.add(BigInteger.ONE);
@@ -285,8 +266,12 @@ public class HederaService implements BlockchainService {
             log.debug(
                     "There was an error getting the results of the transaction {}, retrying...",
                     res.getHash());
-            log.warn("Error ocurring getting the results: ", err);
-            Thread.sleep(500);
+            log.warn("Error occurring getting the results: ", err);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             if (tries.compareTo(maxRetries) > 0) {
                 String errorMsg =
                         String.format(
@@ -304,11 +289,11 @@ public class HederaService implements BlockchainService {
     /**
      * Filter and get contract results (multiple)
      *
-     * @param responses List of contract results not filtered
+     * @param responses The List of contract results is not filtered
      * @return Returns a list of ContractResultResponse
      */
     public List<ContractResultResponse> filterAndGetContractResults(
-            List<ContractResultResponse> responses) throws IOException {
+            List<ContractResultResponse> responses) {
         List<ContractResultResponse> txs = new ArrayList<>();
         List<ContractEventFilter> eventFilters = subscriptionService.listContractEventFilters();
 
@@ -332,13 +317,7 @@ public class HederaService implements BlockchainService {
                         .toList();
 
         responsesFiltered.parallelStream()
-                .forEach(
-                        res -> {
-                            try {
-                                txs.add(callToContractResult(res, BigInteger.ZERO));
-                            } catch (MirrorUnexpectedException | InterruptedException ignored) {
-                            }
-                        });
+                .forEach(res -> txs.add(callToContractResult(res, BigInteger.ZERO)));
         return txs;
     }
 
@@ -410,7 +389,7 @@ public class HederaService implements BlockchainService {
     public Flowable<HederaBlock> blocksFlowable(BigInteger startBlock, Long pollingInterval) {
         AtomicBigInteger currentBlock = new AtomicBigInteger(startBlock);
         return Flowable.create(
-                (subscriber) ->
+                subscriber ->
                         scheduledExecutorService.scheduleAtFixedRate(
                                 () -> {
                                     try {
@@ -424,13 +403,12 @@ public class HederaService implements BlockchainService {
                                     } catch (NotFoundException notFoundException) {
                                         if (currentBlock.get().compareTo(startBlock) > 0) {
                                             log.info(
-                                                    String.format(
-                                                            "Awaiting for new block %d",
-                                                            currentBlock.get()));
+                                                    "Awaiting for new block {}",
+                                                    currentBlock.get());
                                         } else {
                                             log.error(notFoundException.getMessage());
                                         }
-                                    } catch (Throwable var3) {
+                                    } catch (IOException var3) {
                                         log.error("Error sending request", var3);
                                     }
                                 },
@@ -507,7 +485,7 @@ public class HederaService implements BlockchainService {
 
         final ContractEventSpecification eventSpec = eventFilter.getEventSpecification();
 
-        List<ContractEventDetails> contractEventDetails = new ArrayList<ContractEventDetails>();
+        List<ContractEventDetails> contractEventDetails;
         try {
             LogsResponseHederaMirrorNodeResponse logResponse =
                     getLogResponse(eventFilter, startBlock, endBlock);
@@ -515,7 +493,9 @@ public class HederaService implements BlockchainService {
             HttpUrl.Builder httpBuilder;
             while (logResponse.getLinks().getNext() != null) {
                 httpBuilder =
-                        HttpUrl.parse(nodeUrl + logResponse.getLinks().getNext()).newBuilder();
+                        Objects.requireNonNull(
+                                        HttpUrl.parse(nodeUrl + logResponse.getLinks().getNext()))
+                                .newBuilder();
                 Request request = generateHttpRequest(httpBuilder);
                 logResponse =
                         this.newCall(
@@ -543,7 +523,7 @@ public class HederaService implements BlockchainService {
                                                     buildLog(el),
                                                     BigInteger.ZERO,
                                                     eventFilter.getContractAddress()))
-                            .collect(Collectors.toList());
+                            .toList();
 
         } catch (Exception e) {
             throw new BlockchainException("Error when obtaining logs from mirror node", e);
@@ -552,7 +532,7 @@ public class HederaService implements BlockchainService {
     }
 
     /**
-     * Call for obtains a log response
+     * Call for obtaining a log response
      *
      * @param eventFilter Object for filter the logs
      * @param startBlock Start block for filter
@@ -704,65 +684,64 @@ public class HederaService implements BlockchainService {
     private Flowable<ContractEventDetails> createContractEventFlowable(
             ContractEventFilter eventFilter, BigInteger startBlock, BigInteger endBlock) {
         return Flowable.create(
-                emitter -> {
-                    asyncTaskService.execute(
-                            EVENT_EXECUTOR_NAME,
-                            () -> {
-                                try {
-                                    final ContractEventSpecification eventSpec =
-                                            eventFilter.getEventSpecification();
+                emitter ->
+                        asyncTaskService.execute(
+                                EVENT_EXECUTOR_NAME,
+                                () -> {
+                                    try {
+                                        final ContractEventSpecification eventSpec =
+                                                eventFilter.getEventSpecification();
 
-                                    LogsResponseHederaMirrorNodeResponse logResponse =
-                                            getLogResponse(eventFilter, startBlock, endBlock);
-                                    HttpUrl.Builder httpBuilder;
-                                    do {
-                                        if (eventFilter.getEventSpecification() != null) {
-                                            logResponse.getLogs().stream()
-                                                    .filter(
-                                                            f ->
-                                                                    Web3jUtil.getSignature(
-                                                                                    eventSpec)
-                                                                            .contentEquals(
-                                                                                    f.getTopics()
-                                                                                            .getFirst()))
-                                                    .forEach(
-                                                            it -> {
-                                                                ContractEventDetails details =
-                                                                        eventDetailsFactory
-                                                                                .createEventDetails(
-                                                                                        eventFilter,
-                                                                                        buildLog(
-                                                                                                it),
-                                                                                        BigInteger
-                                                                                                .ZERO,
-                                                                                        eventFilter
-                                                                                                .getContractAddress());
-                                                                emitter.onNext(details);
-                                                            });
-                                        }
-                                        if (logResponse.getLinks().getNext() != null) {
-                                            httpBuilder =
-                                                    HttpUrl.parse(
-                                                                    nodeUrl
-                                                                            + logResponse
-                                                                                    .getLinks()
-                                                                                    .getNext())
-                                                            .newBuilder();
-                                            Request request = generateHttpRequest(httpBuilder);
-                                            logResponse =
-                                                    this.newCall(
-                                                            request,
-                                                            new TypeReference<
-                                                                    LogsResponseHederaMirrorNodeResponse>() {});
-                                        }
-                                    } while (logResponse.getLinks().getNext() != null);
+                                        LogsResponseHederaMirrorNodeResponse logResponse =
+                                                getLogResponse(eventFilter, startBlock, endBlock);
+                                        HttpUrl.Builder httpBuilder;
+                                        do {
+                                            if (eventFilter.getEventSpecification() != null) {
+                                                logResponse.getLogs().stream()
+                                                        .filter(
+                                                                f ->
+                                                                        Web3jUtil.getSignature(
+                                                                                        eventSpec)
+                                                                                .contentEquals(
+                                                                                        f.getTopics()
+                                                                                                .getFirst()))
+                                                        .forEach(
+                                                                it -> {
+                                                                    ContractEventDetails details =
+                                                                            eventDetailsFactory
+                                                                                    .createEventDetails(
+                                                                                            eventFilter,
+                                                                                            buildLog(
+                                                                                                    it),
+                                                                                            BigInteger
+                                                                                                    .ZERO,
+                                                                                            eventFilter
+                                                                                                    .getContractAddress());
+                                                                    emitter.onNext(details);
+                                                                });
+                                            }
+                                            if (logResponse.getLinks().getNext() != null) {
+                                                httpBuilder =
+                                                        HttpUrl.parse(
+                                                                        nodeUrl
+                                                                                + logResponse
+                                                                                        .getLinks()
+                                                                                        .getNext())
+                                                                .newBuilder();
+                                                Request request = generateHttpRequest(httpBuilder);
+                                                logResponse =
+                                                        this.newCall(
+                                                                request,
+                                                                new TypeReference<
+                                                                        LogsResponseHederaMirrorNodeResponse>() {});
+                                            }
+                                        } while (logResponse.getLinks().getNext() != null);
 
-                                    emitter.onComplete();
-                                } catch (IOException | NotFoundException exception) {
-                                    log.warn(exception.getMessage());
-                                }
-                            });
-                },
+                                        emitter.onComplete();
+                                    } catch (IOException | NotFoundException exception) {
+                                        log.warn(exception.getMessage());
+                                    }
+                                }),
                 BackpressureStrategy.BUFFER);
     }
 
@@ -778,7 +757,7 @@ public class HederaService implements BlockchainService {
     @Override
     public List<ContractEventDetails> getEventsForFilter(
             ContractEventFilter filter, BigInteger blockNumber) {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

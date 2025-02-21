@@ -31,7 +31,7 @@ public abstract class AbstractMessage<T> implements EventeumMessage<T> {
 
     private Integer retries = 0;
 
-    public AbstractMessage(String id, String type, T details) {
+    AbstractMessage(String id, String type, T details) {
         this.id = id;
         this.type = type;
         this.details = details;

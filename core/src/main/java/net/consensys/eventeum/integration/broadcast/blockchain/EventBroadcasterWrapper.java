@@ -52,9 +52,9 @@ public class EventBroadcasterWrapper implements BlockchainEventBroadcaster {
             BlockchainEventBroadcaster toWrap,
             boolean enableBlockNotifications) {
         this.expirationTimeMillis = expirationTimeMillis;
-        this.contractEventCache = createCache(ContractEventDetails.class);
-        this.transactionCache = createCache(TransactionDetails.class);
-        this.messageCache = createCache(MessageDetails.class);
+        this.contractEventCache = createCache();
+        this.transactionCache = createCache();
+        this.messageCache = createCache();
         this.wrapped = toWrap;
         this.enableBlockNotifications = enableBlockNotifications;
     }
@@ -106,7 +106,7 @@ public class EventBroadcasterWrapper implements BlockchainEventBroadcaster {
         transactionCache.cleanUp();
     }
 
-    protected <T> Cache<Integer, T> createCache(Class<T> clazz) {
+    protected <T> Cache<Integer, T> createCache() {
         return CacheBuilder.newBuilder()
                 .expireAfterWrite(expirationTimeMillis, TimeUnit.MILLISECONDS)
                 .build();

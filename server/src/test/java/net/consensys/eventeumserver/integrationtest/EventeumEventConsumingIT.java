@@ -53,13 +53,13 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
     @Autowired private TransactionMonitoringSpecRepository txMonitorRepo;
 
     @Test
-    public void testFilterAddedEventRegistersFilter() throws Exception {
+    void testFilterAddedEventRegistersFilter() throws Exception {
 
         doBroadcastFilterAddedEventAndVerifyRegistered(deployEventEmitterContract());
     }
 
     @Test
-    public void testFilterRemovedEventRemovesFilter() throws Exception {
+    void testFilterRemovedEventRemovesFilter() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter filter = doBroadcastFilterAddedEventAndVerifyRegistered(emitter);
@@ -78,7 +78,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testTxMonitorAddedEventRegistersMonitor() throws Exception {
+    void testTxMonitorAddedEventRegistersMonitor() throws Exception {
 
         final String signedTxHex = createRawSignedTransactionHex();
         final String txHash = Hash.sha3(signedTxHex);
@@ -98,13 +98,13 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastTransactionMessages().size());
 
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
     }
 
     @Test
-    public void testTxMonitorRemovedEventRemovesMonitor() throws Exception {
+    void testTxMonitorRemovedEventRemovesMonitor() throws Exception {
 
         final String signedTxHex = createRawSignedTransactionHex();
         final String txHash = Hash.sha3(signedTxHex);
@@ -144,7 +144,7 @@ public class EventeumEventConsumingIT extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
         verifyDummyEventDetails(filter, eventDetails, ContractEventStatus.UNCONFIRMED);
 
         return filter;

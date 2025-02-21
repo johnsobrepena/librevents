@@ -86,7 +86,7 @@ public class EventConfirmationBlockListener
 
     private Optional<Log> getCorrespondingLog(TransactionReceipt receipt) {
         return receipt.getLogs().stream()
-                .filter((log) -> log.getLogIndex().equals(contractEvent.getLogIndex()))
+                .filter(log -> log.getLogIndex().equals(contractEvent.getLogIndex()))
                 .findFirst();
     }
 }

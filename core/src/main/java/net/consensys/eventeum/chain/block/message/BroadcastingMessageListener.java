@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BroadcastingMessageListener implements MessageListener {
 
-    private EventStore eventStore;
-    private BlockchainEventBroadcaster eventBroadcaster;
+    private final EventStore eventStore;
+    private final BlockchainEventBroadcaster eventBroadcaster;
 
     @Autowired
     public BroadcastingMessageListener(
@@ -26,8 +26,8 @@ public class BroadcastingMessageListener implements MessageListener {
     @Override
     public void onMessage(MessageDetails messageDetails) {
         eventBroadcaster.broadcastMessage(messageDetails);
-        if (eventStore instanceof SaveableEventStore) {
-            ((SaveableEventStore) eventStore).save(messageDetails);
+        if (eventStore instanceof SaveableEventStore saveableEventStore) {
+            saveableEventStore.save(messageDetails);
         }
     }
 }

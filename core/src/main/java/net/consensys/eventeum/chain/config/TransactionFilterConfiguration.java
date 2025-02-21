@@ -36,7 +36,7 @@ public class TransactionFilterConfiguration {
         }
 
         transactionFilters.forEach(
-                (configFilter) -> {
+                configFilter -> {
                     final TransactionMonitoringSpec contractTransactionFilter =
                             new TransactionMonitoringSpec(
                                     configFilter.getType(),

@@ -44,57 +44,57 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
     @Autowired private EventStore eventStore;
 
     @Test
-    public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
+    void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }
 
     @Test
-    public void testBroadcastNotOrderedEvent() throws Exception {
+    void testBroadcastNotOrderedEvent() throws Exception {
         doTestBroadcastsNotOrderedEvent();
     }
 
     @Test
-    public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
     }
 
     @Test
-    public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
+    void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
     }
 
     @Test
-    public void testBroadcastBlock() throws Exception {
+    void testBroadcastBlock() throws Exception {
         doTestBroadcastBlock();
     }
 
     @Test
-    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+    void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
         doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
     }
 
     @Test
-    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByHash() throws Exception {
+    void testBroadcastFailedTransactionFilteredByHash() throws Exception {
         doTestBroadcastFailedTransactionFilteredByHash();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByTo() throws Exception {
+    void testBroadcastFailedTransactionFilteredByTo() throws Exception {
         doTestBroadcastFailedTransactionFilteredByTo();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
+    void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
         doTestBroadcastFailedTransactionFilteredByFrom();
     }
 
     @Test
-    public void testBroadcastEventAddedToEventStore() throws Exception {
+    void testBroadcastEventAddedToEventStore() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
@@ -106,7 +106,7 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
 
         Thread.sleep(1000);
 
@@ -119,11 +119,11 @@ public class BroadcasterDBEventStoreIT extends MainBroadcasterTests {
                         .getContent();
 
         assertEquals(1, savedEvents.size());
-        assertEquals(eventDetails, savedEvents.get(0));
+        assertEquals(eventDetails, savedEvents.getFirst());
     }
 
     @Test
-    public void testBroadcastBlockAddedToEventStore() throws Exception {
+    void testBroadcastBlockAddedToEventStore() throws Exception {
         doTestBroadcastBlock();
 
         Thread.sleep(1000);

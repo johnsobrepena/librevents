@@ -67,6 +67,6 @@ class MaxBlocksToSyncIT extends ServiceRestartRecoveryTests {
                         .getBlockchainService()
                         .getCurrentBlockNumber()
                         .subtract(BigInteger.valueOf(3)),
-                getBroadcastBlockMessages().get(0).getNumber());
+                getBroadcastBlockMessages().getFirst().getNumber());
     }
 }

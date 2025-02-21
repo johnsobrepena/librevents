@@ -12,8 +12,7 @@ import jakarta.annotation.Generated;
 @Generated("jsonschema2pojo")
 public class LogsResponseHederaMirrorNodeResponse {
 
-    @JsonIgnore
-    private final Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
+    @JsonIgnore private final Map<String, Object> additionalProperties = new LinkedHashMap<>();
 
     @JsonProperty("logs")
     private List<LogHederaMirrorNodeResponse> logHederaMirrorNodeResponses;

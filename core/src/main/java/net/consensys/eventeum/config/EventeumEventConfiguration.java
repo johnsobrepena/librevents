@@ -50,10 +50,8 @@ public class EventeumEventConfiguration {
     @ConditionalOnProperty(name = "broadcaster.multiInstance", havingValue = "true")
     public EventeumInternalEventConsumer kafkaFilterEventConsumer(
             SubscriptionService subscriptionService,
-            TransactionMonitoringService transactionMonitoringService,
-            KafkaSettings kafkaSettings) {
-        return new KafkaFilterEventConsumer(
-                subscriptionService, transactionMonitoringService, kafkaSettings);
+            TransactionMonitoringService transactionMonitoringService) {
+        return new KafkaFilterEventConsumer(subscriptionService, transactionMonitoringService);
     }
 
     @Bean

@@ -206,9 +206,7 @@ public class Web3jService implements BlockchainService {
         try {
             final EthGetTransactionReceipt response = web3j.ethGetTransactionReceipt(txId).send();
 
-            return response.getTransactionReceipt()
-                    .map(receipt -> new Web3jTransactionReceipt(receipt))
-                    .orElse(null);
+            return response.getTransactionReceipt().map(Web3jTransactionReceipt::new).orElse(null);
         } catch (IOException e) {
             throw new BlockchainException("Unable to connect to the ethereum client", e);
         }
@@ -300,12 +298,7 @@ public class Web3jService implements BlockchainService {
             EthFilter ethFilter, ContractEventFilter eventFilter, Optional<Runnable> onCompletion) {
         log.debug("Creating EthLog flowable for filter {}", eventFilter.getId());
         return web3j.ethLogFlowable(ethFilter)
-                .doOnComplete(
-                        () -> {
-                            if (onCompletion.isPresent()) {
-                                onCompletion.get().run();
-                            }
-                        });
+                .doOnComplete(() -> onCompletion.ifPresent(Runnable::run));
     }
 
     private BigInteger getStartBlockForEventFilter(ContractEventFilter filter) {

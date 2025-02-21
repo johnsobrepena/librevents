@@ -15,7 +15,6 @@
 package net.consensys.eventeum.chain.service.block;
 
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,13 +30,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultBlockNumberService implements BlockNumberService {
 
-    private NodeSettings settings;
-
-    private EventStoreService eventStoreService;
-
-    private ChainServicesContainer chainServices;
-
-    private Map<String, BigInteger> currentBlockAtStartup = new HashMap<>();
+    private final NodeSettings settings;
+    private final EventStoreService eventStoreService;
+    private final ChainServicesContainer chainServices;
+    private final Map<String, BigInteger> currentBlockAtStartup;
 
     public DefaultBlockNumberService(
             NodeSettings settings,
@@ -104,15 +100,12 @@ public class DefaultBlockNumberService implements BlockNumberService {
     // We want to be consistent on the start block across the system, so get the current block once
     // and store
     protected BigInteger getCurrentBlockAtStartup(String node) {
-        if (!currentBlockAtStartup.containsKey(node)) {
-            currentBlockAtStartup.put(
-                    node,
-                    chainServices
-                            .getNodeServices(node)
-                            .getBlockchainService()
-                            .getCurrentBlockNumber());
-        }
-
-        return currentBlockAtStartup.get(node);
+        return currentBlockAtStartup.computeIfAbsent(
+                node,
+                key ->
+                        chainServices
+                                .getNodeServices(key)
+                                .getBlockchainService()
+                                .getCurrentBlockNumber());
     }
 }

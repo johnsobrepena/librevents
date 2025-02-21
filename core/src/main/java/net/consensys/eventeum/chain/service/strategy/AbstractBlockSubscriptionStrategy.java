@@ -48,7 +48,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
     private final AtomicBoolean error = new AtomicBoolean(false);
     protected Disposable blockSubscription;
 
-    public AbstractBlockSubscriptionStrategy(
+    AbstractBlockSubscriptionStrategy(
             Web3j web3j,
             String nodeName,
             String nodeType,
@@ -149,7 +149,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
         if (!error.get()) {
             try {
                 listener.onBlock(block);
-            } catch (Throwable t) {
+            } catch (RuntimeException t) {
                 onError(blockSubscription, t);
             }
         }
@@ -161,7 +161,7 @@ public abstract class AbstractBlockSubscriptionStrategy<T> implements BlockSubsc
 
     protected void onError(Disposable disposable, Throwable error) {
         log.error(
-                "There was an error when processing a block, disposing blocksubscription (will be reinitialised)",
+                "There was an error when processing a block, disposing block subscription (will be reinitialised)",
                 error);
 
         this.error.set(true);

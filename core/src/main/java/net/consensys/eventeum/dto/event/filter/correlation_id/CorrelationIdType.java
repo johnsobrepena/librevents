@@ -1,4 +1,4 @@
-package net.consensys.eventeum.dto.event.filter.correlationId;
+package net.consensys.eventeum.dto.event.filter.correlation_id;
 
 public enum CorrelationIdType {
     INDEXED_PARAMETER,

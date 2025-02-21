@@ -81,8 +81,8 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
     }
 
     @Test
-    public void testEventsCatchupOnStart() throws Exception {
-        waitForMessages(30, getBroadcastContractEvents(), false, TopicTypesEnum.message, 6000);
+    void testEventsCatchupOnStart() throws Exception {
+        waitForMessages(30, getBroadcastContractEvents(), false, TopicTypesEnum.MESSAGE, 6000);
 
         final List<ContractEventDetails> events =
                 getBroadcastContractEvents().stream()
@@ -102,7 +102,7 @@ public abstract class BaseEventCatchupTest extends BaseKafkaIntegrationTest {
         assertEquals(SyncStatus.SYNCED, syncStatus.getSyncStatus());
 
         // Only need to sync with start block
-        // assertEquals(events.get(0).getBlockNumber(), syncStatus.getLastBlockNumber());
+        // assertEquals(events.getFirst().getBlockNumber(), syncStatus.getLastBlockNumber());
 
         getBroadcastContractEvents().clear();
 

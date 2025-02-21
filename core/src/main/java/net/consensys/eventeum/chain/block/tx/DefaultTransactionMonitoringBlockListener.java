@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.block.tx.criteria.TransactionMatchingCriteria;
@@ -112,16 +111,15 @@ public class DefaultTransactionMonitoringBlockListener
             blockCache
                     .getCachedBlocks()
                     .forEach(
-                            block -> {
-                                block.getTransactions()
-                                        .forEach(
-                                                tx ->
-                                                        broadcastIfMatched(
-                                                                tx,
-                                                                block,
-                                                                Collections.singletonList(
-                                                                        matchingCriteria)));
-                            });
+                            block ->
+                                    block.getTransactions()
+                                            .forEach(
+                                                    tx ->
+                                                            broadcastIfMatched(
+                                                                    tx,
+                                                                    block,
+                                                                    Collections.singletonList(
+                                                                            matchingCriteria))));
         } finally {
             lock.unlock();
         }
@@ -143,24 +141,22 @@ public class DefaultTransactionMonitoringBlockListener
                 transactionDetailsFactory.createTransactionDetails(
                         tx, TransactionStatus.CONFIRMED, block); // CONFIRMED by default
 
-        if (block instanceof HederaBlock && tx.getTo() == null) {
+        if (block instanceof HederaBlock hederaBlock && tx.getTo() == null) {
             List<String> addresses =
-                    ((HederaBlock) block)
-                            .getContractResults().stream()
-                                    .map(ContractResultResponse::getStateChanges)
-                                    .flatMap(Collection::stream)
-                                    .collect(Collectors.toList())
-                                    .stream()
-                                    .map(StateChangeResponse::getAddress)
-                                    .distinct()
-                                    .collect(Collectors.toList());
-            addresses.stream()
-                    .forEach(
-                            address -> {
-                                txDetails.setTo(address);
-                                // Only broadcast once, even if multiple matching criteria apply
-                                checkTxCriteria(criteriaToCheck, txDetails);
-                            });
+                    hederaBlock.getContractResults().stream()
+                            .map(ContractResultResponse::getStateChanges)
+                            .flatMap(Collection::stream)
+                            .toList()
+                            .stream()
+                            .map(StateChangeResponse::getAddress)
+                            .distinct()
+                            .toList();
+            addresses.forEach(
+                    address -> {
+                        txDetails.setTo(address);
+                        // Only broadcast once, even if multiple matching criteria apply
+                        checkTxCriteria(criteriaToCheck, txDetails);
+                    });
         } else {
             // Only broadcast once, even if multiple matching criteria apply
             checkTxCriteria(criteriaToCheck, txDetails);
@@ -235,10 +231,6 @@ public class DefaultTransactionMonitoringBlockListener
     }
 
     private boolean isSuccessTransaction(TransactionDetails txDetails) {
-        /*if (txDetails.getStatus() != null) {
-            return txDetails.isSuccess();
-        }*/
-
         final TransactionReceipt receipt =
                 getBlockchainService(txDetails.getNodeName())
                         .getTransactionReceipt(txDetails.getHash());
@@ -248,11 +240,7 @@ public class DefaultTransactionMonitoringBlockListener
             return true;
         }
 
-        if (receipt.getStatus().equals("0x0")) {
-            return false;
-        }
-
-        return true;
+        return !receipt.getStatus().equals("0x0");
     }
 
     private boolean shouldWaitBeforeConfirmation(Node node) {
@@ -279,7 +267,8 @@ public class DefaultTransactionMonitoringBlockListener
     private String getRevertReason(TransactionDetails txDetails) {
         Node node = nodeSettings.getNode(txDetails.getNodeName());
 
-        if (!node.getAddTransactionRevertReason() || txDetails.getRevertReason() != null) {
+        if (Boolean.TRUE.equals(!node.getAddTransactionRevertReason())
+                || txDetails.getRevertReason() != null) {
             return null;
         }
 

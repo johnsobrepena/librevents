@@ -74,7 +74,8 @@ public class EeaTransactionMonitoringBlockListener
                                                     block);
                                     txDetails.setTo(txReceipt.getTo());
                                     txDetails.setRevertReason(
-                                            node.getAddTransactionRevertReason()
+                                            Boolean.TRUE.equals(
+                                                            node.getAddTransactionRevertReason())
                                                     ? txReceipt.getRevertReason()
                                                     : null);
                                     criteriaToCheck.stream()

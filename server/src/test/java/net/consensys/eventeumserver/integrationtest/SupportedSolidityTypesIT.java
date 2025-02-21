@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
     @Test
-    public void testBytes16Broadcast() throws Exception {
+    void testBytes16Broadcast() throws Exception {
         final EventEmitter eventEmitter = deployEventEmitterContract();
 
         final ContractEventSpecification eventSpec = new ContractEventSpecification();
@@ -66,15 +66,15 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         waitForContractEventMessages(1);
 
-        final ContractEventDetails event = getBroadcastContractEvents().get(0);
+        final ContractEventDetails event = getBroadcastContractEvents().getFirst();
         final String valueHex = Numeric.toHexString(rndBytes, 0, 16, true);
 
-        assertEquals(valueHex, event.getNonIndexedParameters().get(0).getValueString());
-        assertEquals(valueHex, event.getIndexedParameters().get(0).getValueString());
+        assertEquals(valueHex, event.getNonIndexedParameters().getFirst().getValueString());
+        assertEquals(valueHex, event.getIndexedParameters().getFirst().getValueString());
     }
 
     @Test
-    public void testEventWithAdditionalTypes() throws Exception {
+    void testEventWithAdditionalTypes() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         byte[] byteValue = randomBytesValue(1);
@@ -86,20 +86,21 @@ public class SupportedSolidityTypesIT extends BaseKafkaIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
 
         assertEquals(
                 registeredFilter.getEventSpecification().getEventName(), eventDetails.getName());
         assertEquals(ContractEventStatus.UNCONFIRMED, eventDetails.getStatus());
 
-        assertEquals(BigInteger.ONE, eventDetails.getIndexedParameters().get(0).getValue());
+        assertEquals(BigInteger.ONE, eventDetails.getIndexedParameters().getFirst().getValue());
         assertEquals(BigInteger.TEN, eventDetails.getIndexedParameters().get(1).getValue());
 
         final ArrayList<StringParameter> addressArray =
                 (ArrayList<StringParameter>)
-                        eventDetails.getNonIndexedParameters().get(0).getValue();
+                        eventDetails.getNonIndexedParameters().getFirst().getValue();
 
-        assertEquals(Keys.toChecksumAddress(CREDS.getAddress()), addressArray.get(0).getValue());
+        assertEquals(
+                Keys.toChecksumAddress(CREDS.getAddress()), addressArray.getFirst().getValue());
         assertEquals(
                 Keys.toChecksumAddress(emitter.getContractAddress()),
                 addressArray.get(1).getValue());

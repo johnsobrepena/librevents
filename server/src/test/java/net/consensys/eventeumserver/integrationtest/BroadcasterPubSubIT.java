@@ -28,52 +28,52 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class BroadcasterPubSubIT extends MainBroadcasterTests {
 
     @Test
-    public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
+    void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }
 
     @Test
-    public void testBroadcastNotOrderedEvent() throws Exception {
+    void testBroadcastNotOrderedEvent() throws Exception {
         doTestBroadcastsNotOrderedEvent();
     }
 
     @Test
-    public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
     }
 
     @Test
-    public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
+    void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
     }
 
     @Test
-    public void testBroadcastBlock() throws Exception {
+    void testBroadcastBlock() throws Exception {
         doTestBroadcastBlock();
     }
 
     @Test
-    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+    void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
         doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
     }
 
     @Test
-    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByHash() throws Exception {
+    void testBroadcastFailedTransactionFilteredByHash() throws Exception {
         doTestBroadcastFailedTransactionFilteredByHash();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByTo() throws Exception {
+    void testBroadcastFailedTransactionFilteredByTo() throws Exception {
         doTestBroadcastFailedTransactionFilteredByTo();
     }
 
     @Test
-    public void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
+    void testBroadcastFailedTransactionFilteredByFrom() throws Exception {
         doTestBroadcastFailedTransactionFilteredByFrom();
     }
 }

@@ -66,13 +66,13 @@ public class ContractPrivateEventIntegrationTest {
     @Autowired private EventStoreService evStore;
 
     @Test
-    public void endToEndPrivateContractEventFilterTest() throws Exception {
+    void endToEndPrivateContractEventFilterTest() throws Exception {
         MyContract contract = loadPrivateContract();
         testContract(PRIVATE_CONTRACT_ADDRESS, contract);
     }
 
     @Test
-    public void endToEndPublicContractEventFilterTest() throws Exception {
+    void endToEndPublicContractEventFilterTest() throws Exception {
         MyContract contract = loadPublicContract();
         testContract(PUBLIC_CONTRACT_ADDRESS, contract);
     }
@@ -95,7 +95,7 @@ public class ContractPrivateEventIntegrationTest {
         assertEquals(
                 "Sender in event is not correct",
                 Keys.toChecksumAddress(TestUtils.creds.getAddress()),
-                latestContractEvent.get().getNonIndexedParameters().get(0).getValueString());
+                latestContractEvent.get().getNonIndexedParameters().getFirst().getValueString());
         assertEquals(
                 Long.valueOf(1),
                 Long.valueOf(
@@ -110,7 +110,7 @@ public class ContractPrivateEventIntegrationTest {
     }
 
     @Test
-    public void testDeployPrivateContract() throws Exception {
+    void testDeployPrivateContract() throws Exception {
         MyContract contract =
                 MyContract.deploy(TestUtils.besu, TestUtils.privateManager, TestUtils.gasProvider)
                         .send();
@@ -121,7 +121,7 @@ public class ContractPrivateEventIntegrationTest {
     }
 
     @Test
-    public void testDeployPublicContract() throws Exception {
+    void testDeployPublicContract() throws Exception {
         MyContract contract =
                 MyContract.deploy(TestUtils.besu, TestUtils.publicManager, TestUtils.gasProvider)
                         .send();

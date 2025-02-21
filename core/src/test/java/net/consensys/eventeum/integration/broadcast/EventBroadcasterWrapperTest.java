@@ -24,7 +24,7 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class EventBroadcasterWrapperTest {
+class EventBroadcasterWrapperTest {
 
     private static final Long EXPIRATION_MILLISECONDS = 6000000L;
 
@@ -36,7 +36,7 @@ public class EventBroadcasterWrapperTest {
     }
 
     @Test
-    public void testDisableBlockNotification() {
+    void testDisableBlockNotification() {
         EventBroadcasterWrapper underTest =
                 new EventBroadcasterWrapper(
                         EXPIRATION_MILLISECONDS, blockchainEventBroadcaster, false);
@@ -48,7 +48,7 @@ public class EventBroadcasterWrapperTest {
     }
 
     @Test
-    public void testEnableBlockNotifications() {
+    void testEnableBlockNotifications() {
         EventBroadcasterWrapper underTest =
                 new EventBroadcasterWrapper(
                         EXPIRATION_MILLISECONDS, blockchainEventBroadcaster, true);

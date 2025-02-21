@@ -40,7 +40,7 @@ public class EventStoreFactoryIT extends BaseIntegrationTest {
     @Autowired private EventStoreFactoryConfig.Entities<ContractEventDetails> savedEvents;
 
     @Test
-    public void testEventStoreFactoryWiredCorrectly() throws Exception {
+    void testEventStoreFactoryWiredCorrectly() throws Exception {
         final EventEmitter emitter = deployEventEmitterContract();
 
         final ContractEventFilter registeredFilter =
@@ -50,7 +50,7 @@ public class EventStoreFactoryIT extends BaseIntegrationTest {
         Thread.sleep(15000);
         assertEquals(1, savedEvents.getEntities().size());
 
-        final ContractEventDetails eventDetails = savedEvents.getEntities().get(0);
+        final ContractEventDetails eventDetails = savedEvents.getEntities().getFirst();
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 }

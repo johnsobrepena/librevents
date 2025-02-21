@@ -16,6 +16,7 @@ package net.consensys.eventeum.chain.factory;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 
 import net.consensys.eventeum.chain.converter.EventParameterConverter;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
@@ -75,8 +76,6 @@ public class DefaultContractEventDetailsFactoryTest {
 
     private static final String FROM_ADDRESS = "0x5fd30686247835ee5e96567e29d88bD9A83dca52";
 
-    private DefaultContractEventDetailsFactory underTest;
-
     private EventParameterConverter mockParameterCoverter;
 
     private org.web3j.protocol.core.methods.response.Log mockLog;
@@ -93,7 +92,7 @@ public class DefaultContractEventDetailsFactoryTest {
         eventSpec = new ContractEventSpecification();
         eventSpec.setEventName(EVENT_NAME);
         eventSpec.setIndexedParameterDefinitions(
-                Arrays.asList(new ParameterDefinition(0, ParameterType.build("UINT256"))));
+                List.of(new ParameterDefinition(0, ParameterType.build("UINT256"))));
 
         eventSpec.setNonIndexedParameterDefinitions(
                 Arrays.asList(
@@ -128,7 +127,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     @Test
-    public void testValuesCorrect() {
+    void testValuesCorrect() {
         DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final ContractEventDetails eventDetails =
@@ -150,7 +149,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     @Test
-    public void testStatusWhenLogRemoved() {
+    void testStatusWhenLogRemoved() {
         when(mockLog.isRemoved()).thenReturn(true);
 
         DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
@@ -162,7 +161,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     @Test
-    public void testStatusWhenZeroConfirmationsConfigured() {
+    void testStatusWhenZeroConfirmationsConfigured() {
         DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.ZERO);
 
         final ContractEventDetails eventDetails =
@@ -172,7 +171,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     @Test
-    public void testIndexedParametersAreCorrect() {
+    void testIndexedParametersAreCorrect() {
         final DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
         final EventParameter mockParam1 = mock(EventParameter.class);
@@ -187,7 +186,7 @@ public class DefaultContractEventDetailsFactoryTest {
     }
 
     @Test
-    public void testNonIndexedParametersAreCorrect() {
+    void testNonIndexedParametersAreCorrect() {
 
         final DefaultContractEventDetailsFactory underTest = createFactory(BigInteger.TEN);
 
@@ -201,7 +200,7 @@ public class DefaultContractEventDetailsFactoryTest {
         assertEquals(
                 Arrays.asList(mockParam1, mockParam1, mockParam1),
                 eventDetails.getNonIndexedParameters());
-        assertEquals(BigInteger.valueOf(123), argumentCaptor.getAllValues().get(0).getValue());
+        assertEquals(BigInteger.valueOf(123), argumentCaptor.getAllValues().getFirst().getValue());
         assertEquals(
                 "0x00a329c0648769a73afac7f9381e08fb43dbea72",
                 argumentCaptor.getAllValues().get(1).toString());

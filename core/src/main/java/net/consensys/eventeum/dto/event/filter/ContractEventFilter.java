@@ -26,7 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.constant.Constants;
 import net.consensys.eventeum.dto.converter.HashMapConverter;
-import net.consensys.eventeum.dto.event.filter.correlationId.ParameterCorrelationIdStrategy;
+import net.consensys.eventeum.dto.event.filter.correlation_id.ParameterCorrelationIdStrategy;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**

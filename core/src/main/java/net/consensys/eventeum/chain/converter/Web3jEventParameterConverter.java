@@ -38,37 +38,37 @@ import org.web3j.utils.Numeric;
 @Component("web3jEventParameterConverter")
 public class Web3jEventParameterConverter implements EventParameterConverter<Type> {
 
-    private Map<String, EventParameterConverter<Type>> typeConverters =
-            new HashMap<String, EventParameterConverter<Type>>();
-
-    private EventeumSettings settings;
+    private final Map<String, EventParameterConverter<Type>> typeConverters = new HashMap<>();
+    private final EventeumSettings settings;
 
     public Web3jEventParameterConverter(EventeumSettings settings) {
         typeConverters.put(
                 "address",
-                (type) ->
+                type ->
                         new StringParameter(
                                 type.getTypeAsString(), Keys.toChecksumAddress(type.toString())));
 
-        registerNumberConverters("uint", 8, 256);
-        registerNumberConverters("int", 8, 256);
-        registerBytesConverters("bytes", 1, 32);
+        registerNumberConverters("uint");
+        registerNumberConverters("int");
+        registerBytesConverters();
 
-        typeConverters.put("byte", (type) -> convertBytesType(type));
+        typeConverters.put("byte", this::convertBytesType);
         typeConverters.put(
                 "bool",
-                (type) ->
+                type ->
                         new NumberParameter(
                                 type.getTypeAsString(),
-                                (Boolean) type.getValue() ? BigInteger.ONE : BigInteger.ZERO));
+                                Boolean.TRUE.equals(type.getValue())
+                                        ? BigInteger.ONE
+                                        : BigInteger.ZERO));
         typeConverters.put(
                 "string",
-                (type) ->
+                type ->
                         new StringParameter(
                                 type.getTypeAsString(), trim((String) type.getValue())));
         typeConverters.put(
                 "bytes",
-                (type) ->
+                type ->
                         new StringParameter(
                                 type.getTypeAsString(),
                                 Numeric.toHexString((byte[]) type.getValue())));
@@ -83,8 +83,7 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
         if (typeConverter == null) {
             // Type might be an array, in which case the type will be the array type class
-            if (toConvert instanceof Array) {
-                final Array<?> theArray = (Array<?>) toConvert;
+            if (toConvert instanceof Array<?> theArray) {
                 return convertArray(theArray);
             }
 
@@ -94,19 +93,19 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
         return typeConverter.convert(toConvert);
     }
 
-    private void registerNumberConverters(String prefix, int increment, int max) {
-        for (int i = increment; i <= max; i = i + increment) {
+    private void registerNumberConverters(String prefix) {
+        for (int i = 8; i <= 256; i = i + 8) {
             typeConverters.put(
                     prefix + i,
-                    (type) ->
+                    type ->
                             new NumberParameter(
                                     type.getTypeAsString(), (BigInteger) type.getValue()));
         }
     }
 
-    private void registerBytesConverters(String prefix, int increment, int max) {
-        for (int i = increment; i <= max; i = i + increment) {
-            typeConverters.put(prefix + i, (type) -> convertBytesType(type));
+    private void registerBytesConverters() {
+        for (int i = 1; i <= 32; i = i + 1) {
+            typeConverters.put("bytes" + i, this::convertBytesType);
         }
     }
 
@@ -115,10 +114,8 @@ public class Web3jEventParameterConverter implements EventParameterConverter<Typ
 
         toConvert.getValue().forEach(arrayEntry -> convertedArray.add(convert(arrayEntry)));
 
-        return new ArrayParameter(
-                toConvert.getTypeAsString().replace("[]", "").toLowerCase(),
-                toConvert.getComponentType(),
-                convertedArray);
+        return new ArrayParameter<>(
+                toConvert.getTypeAsString().replace("[]", "").toLowerCase(), convertedArray);
     }
 
     private EventParameter convertBytesType(Type bytesType) {

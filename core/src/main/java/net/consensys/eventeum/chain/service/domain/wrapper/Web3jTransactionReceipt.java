@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.chain.service.domain.Log;
 import net.consensys.eventeum.chain.service.domain.TransactionReceipt;
 import net.consensys.eventeum.utils.ModelMapperFactory;
@@ -30,6 +31,7 @@ import org.modelmapper.ModelMapper;
  * @author Craig Williams craig.williams@consensys.net
  */
 @Data
+@Slf4j
 public class Web3jTransactionReceipt implements TransactionReceipt {
 
     private String transactionHash;
@@ -53,7 +55,7 @@ public class Web3jTransactionReceipt implements TransactionReceipt {
         logs = convertLogs(web3TransactionReceipt.getLogs());
 
         try {
-            final ModelMapper modelMapper = ModelMapperFactory.getInstance().getModelMapper();
+            final ModelMapper modelMapper = ModelMapperFactory.getModelMapper();
             // Skip logs
             modelMapper
                     .getConfiguration()
@@ -65,12 +67,12 @@ public class Web3jTransactionReceipt implements TransactionReceipt {
                                             .equals("logs"));
             modelMapper.map(web3TransactionReceipt, this);
         } catch (RuntimeException re) {
-            re.printStackTrace();
+            log.error(re.getMessage(), re);
             throw re;
         }
     }
 
     private List<Log> convertLogs(List<org.web3j.protocol.core.methods.response.Log> logs) {
-        return logs.stream().map(log -> new Web3jLog(log)).collect(Collectors.toList());
+        return logs.stream().map(Web3jLog::new).collect(Collectors.toList());
     }
 }

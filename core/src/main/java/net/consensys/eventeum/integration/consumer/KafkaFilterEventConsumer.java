@@ -18,15 +18,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
 import net.consensys.eventeum.dto.message.*;
-import net.consensys.eventeum.integration.KafkaSettings;
 import net.consensys.eventeum.model.TransactionMonitoringSpec;
 import net.consensys.eventeum.service.SubscriptionService;
 import net.consensys.eventeum.service.TransactionMonitoringService;
 import net.consensys.eventeum.service.exception.NotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -39,53 +37,49 @@ import org.springframework.retry.annotation.Backoff;
  *
  * @author Craig Williams craig.williams@consensys.net
  */
+@Slf4j
 public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
-
-    private static final Logger logger = LoggerFactory.getLogger(KafkaFilterEventConsumer.class);
 
     private final Map<String, Consumer<EventeumMessage>> messageConsumers;
 
     @Autowired
     public KafkaFilterEventConsumer(
             SubscriptionService subscriptionService,
-            TransactionMonitoringService transactionMonitoringService,
-            KafkaSettings kafkaSettings) {
+            TransactionMonitoringService transactionMonitoringService) {
 
         messageConsumers = new HashMap<>();
         messageConsumers.put(
                 ContractEventFilterAdded.TYPE,
-                (message) -> {
-                    subscriptionService.registerContractEventFilter(
-                            (ContractEventFilter) message.getDetails(), false);
-                });
+                message ->
+                        subscriptionService.registerContractEventFilter(
+                                (ContractEventFilter) message.getDetails(), false));
 
         messageConsumers.put(
                 ContractEventFilterRemoved.TYPE,
-                (message) -> {
+                message -> {
                     try {
                         subscriptionService.unregisterContractEventFilter(
                                 ((ContractEventFilter) message.getDetails()).getId(), false);
                     } catch (NotFoundException e) {
-                        logger.debug(
+                        log.debug(
                                 "Received filter removed message but filter doesn't exist. (We probably sent message)");
                     }
                 });
 
         messageConsumers.put(
                 TransactionMonitorAdded.TYPE,
-                (message) -> {
-                    transactionMonitoringService.registerTransactionsToMonitor(
-                            (TransactionMonitoringSpec) message.getDetails(), false);
-                });
+                message ->
+                        transactionMonitoringService.registerTransactionsToMonitor(
+                                (TransactionMonitoringSpec) message.getDetails(), false));
 
         messageConsumers.put(
                 TransactionMonitorRemoved.TYPE,
-                (message) -> {
+                message -> {
                     try {
                         transactionMonitoringService.stopMonitoringTransactions(
                                 ((TransactionMonitoringSpec) message.getDetails()).getId(), false);
                     } catch (NotFoundException e) {
-                        logger.debug(
+                        log.debug(
                                 "Received transaction monitor removed message but monitor doesn't exist. (We probably sent message)");
                     }
                 });
@@ -107,7 +101,7 @@ public class KafkaFilterEventConsumer implements EventeumInternalEventConsumer {
         final Consumer<EventeumMessage> consumer = messageConsumers.get(message.getType());
 
         if (consumer == null) {
-            logger.error(String.format("No consumer for message type %s!", message.getType()));
+            log.error("No consumer for message type {}", message.getType());
             return;
         }
 

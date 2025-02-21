@@ -63,9 +63,9 @@ public class BaseKafkaIntegrationTest extends BaseIntegrationTest {
     @Autowired public KafkaListenerEndpointRegistry registry;
     @Autowired EmbeddedKafkaBroker embeddedKafka;
     @Autowired private KafkaSettings kafkaSettings;
-    private KafkaMessageListenerContainer springMessageListener;
     private KafkaMessageListenerContainer<String, String> testContainer;
 
+    @Override
     @BeforeEach
     public void setUp() throws Exception {
         super.setUp();

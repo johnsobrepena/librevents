@@ -11,8 +11,7 @@ import jakarta.annotation.Generated;
 @Generated("jsonschema2pojo")
 public class LinksResponse {
 
-    @JsonIgnore
-    private final Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
+    @JsonIgnore private final Map<String, Object> additionalProperties = new LinkedHashMap<>();
 
     @JsonProperty("next")
     private String next;

@@ -44,7 +44,7 @@ public class Web3jTransaction implements Transaction {
 
     public Web3jTransaction(org.web3j.protocol.core.methods.response.Transaction web3jTransaction) {
 
-        final ModelMapper modelMapper = ModelMapperFactory.getInstance().getModelMapper();
+        final ModelMapper modelMapper = ModelMapperFactory.getModelMapper();
         modelMapper.map(web3jTransaction, this);
     }
 }

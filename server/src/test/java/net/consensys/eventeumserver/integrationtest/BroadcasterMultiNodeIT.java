@@ -30,32 +30,32 @@ public class BroadcasterMultiNodeIT extends MainBroadcasterTests {
     // TODO need to add tests that properly run a 2nd node and test events from both nodes
 
     @Test
-    public void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
+    void testBroadcastsUnconfirmedEventAfterInitialEmit() throws Exception {
         doTestBroadcastsUnconfirmedEventAfterInitialEmit();
     }
 
     @Test
-    public void testBroadcastNotOrderedEvent() throws Exception {
+    void testBroadcastNotOrderedEvent() throws Exception {
         doTestBroadcastsNotOrderedEvent();
     }
 
     @Test
-    public void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedEventAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedEventAfterBlockThresholdReached();
     }
 
     @Test
-    public void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
+    void testContractEventForUnregisteredEventFilterNotBroadcast() throws Exception {
         doTestContractEventForUnregisteredEventFilterNotBroadcast();
     }
 
     @Test
-    public void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
+    void testBroadcastsUnconfirmedTransactionAfterInitialMining() throws Exception {
         doTestBroadcastsUnconfirmedTransactionAfterInitialMining();
     }
 
     @Test
-    public void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
+    void testBroadcastsConfirmedTransactionAfterBlockThresholdReached() throws Exception {
         doTestBroadcastsConfirmedTransactionAfterBlockThresholdReached();
     }
 }

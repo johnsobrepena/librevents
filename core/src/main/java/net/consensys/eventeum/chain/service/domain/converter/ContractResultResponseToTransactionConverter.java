@@ -16,7 +16,6 @@ public class ContractResultResponseToTransactionConverter
         ContractResultResponse res = mappingContext.getSource();
         Web3jTransaction tx = new Web3jTransaction();
         tx.setHash(res.getHash());
-        //        tx.setNonce(res.getNonce().toString());
         tx.setBlockHash(res.getBlockHash());
         tx.setBlockNumber(res.getBlockNumber());
         tx.setTransactionIndex(
@@ -24,14 +23,10 @@ public class ContractResultResponseToTransactionConverter
         tx.setFrom(res.getFrom());
         tx.setTo(res.getTo());
         tx.setValue(res.getAmount() != null ? res.getAmount().toString() : null);
-        //        tx.setGasPrice(res.getGasPrice());
-        //        tx.setGas(res.getGasUsed().toString());
         tx.setInput(res.getFunctionParameters());
         tx.setCreates("");
         tx.setPublicKey("");
         tx.setRaw("");
-        //        tx.setR(res.getR());
-        //        tx.setV(res.getV());
         return tx;
     }
 }

@@ -16,11 +16,9 @@ package net.consensys.eventeum.chain.config;
 
 import java.net.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.AllArgsConstructor;
@@ -34,13 +32,13 @@ import net.consensys.eventeum.chain.service.health.strategy.HttpReconnectionStra
 import net.consensys.eventeum.chain.service.health.strategy.WebSocketResubscribeNodeFailureListener;
 import net.consensys.eventeum.chain.service.strategy.PollingBlockSubscriptionStrategy;
 import net.consensys.eventeum.chain.service.strategy.PubSubBlockSubscriptionStrategy;
+import net.consensys.eventeum.chain.settings.BlockStrategy;
 import net.consensys.eventeum.chain.settings.ChainType;
 import net.consensys.eventeum.chain.settings.Node;
 import net.consensys.eventeum.chain.settings.NodeSettings;
 import okhttp3.ConnectionPool;
 import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
-import org.reflections.Reflections;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -124,7 +122,7 @@ public class NodeBeanRegistrationStrategy {
     }
 
     // TODO register multiple nodes even when chains differ
-    private String registerNodeServicesBean(
+    private void registerNodeServicesBean(
             Node node,
             Web3j web3j,
             String web3jServiceBeanName,
@@ -149,11 +147,9 @@ public class NodeBeanRegistrationStrategy {
 
         final String beanName = String.format(NODE_SERVICES_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
-
-        return beanName;
     }
 
-    private String registerContractEventDetailsFactoryBean(
+    private void registerContractEventDetailsFactoryBean(
             Node node, BeanDefinitionRegistry registry) {
         final BeanDefinitionBuilder builder =
                 BeanDefinitionBuilder.genericBeanDefinition(
@@ -163,20 +159,15 @@ public class NodeBeanRegistrationStrategy {
                 .addPropertyValue("node", node)
                 .addPropertyValue("nodeName", node.getName());
 
-        final String beanName =
-                String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(
                 String.format(CONTRACT_EVENT_DETAILS_FACTORY_BEAN_NAME, node.getName()),
                 builder.getBeanDefinition());
-
-        return beanName;
     }
 
     private String registerBlockchainServiceBean(
             Node node, Web3j web3j, BeanDefinitionRegistry registry) {
         Class<? extends BlockchainService> blockchainService =
                 net.consensys.eventeum.chain.service.Web3jService.class;
-        ;
 
         final BeanDefinitionBuilder builder =
                 BeanDefinitionBuilder.genericBeanDefinition(blockchainService);
@@ -192,7 +183,7 @@ public class NodeBeanRegistrationStrategy {
         return beanName;
     }
 
-    private String registerNodeHealthCheckBean(
+    private void registerNodeHealthCheckBean(
             Node node,
             String blockchainServiceBeanName,
             String blockSubStrategyBeanName,
@@ -221,8 +212,6 @@ public class NodeBeanRegistrationStrategy {
 
         final String beanName = String.format(NODE_HEALTH_CHECK_BEAN_NAME, node.getName());
         registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
-
-        return beanName;
     }
 
     private String registerNodeFailureListener(
@@ -345,31 +334,8 @@ public class NodeBeanRegistrationStrategy {
 
     private String registerBlockSubscriptionStrategyBean(
             Node node, Web3j web3j, BeanDefinitionRegistry registry, String hederaServiceBeanName) {
-        BeanDefinitionBuilder builder = null;
-
-        String nodeBlockStrategy = node.getBlockStrategy();
-
-        if (nodeBlockStrategy != null) {
-            if (nodeBlockStrategy.equals("POLL")) {
-                builder =
-                        BeanDefinitionBuilder.genericBeanDefinition(
-                                PollingBlockSubscriptionStrategy.class);
-            } else if (nodeBlockStrategy.equals("PUBSUB")) {
-                builder =
-                        BeanDefinitionBuilder.genericBeanDefinition(
-                                PubSubBlockSubscriptionStrategy.class);
-            }
-        } else {
-            if (nodeSettings.getBlockStrategy().equals("POLL")) {
-                builder =
-                        BeanDefinitionBuilder.genericBeanDefinition(
-                                PollingBlockSubscriptionStrategy.class);
-            } else if (nodeSettings.getBlockStrategy().equals("PUBSUB")) {
-                builder =
-                        BeanDefinitionBuilder.genericBeanDefinition(
-                                PubSubBlockSubscriptionStrategy.class);
-            }
-        }
+        BlockStrategy nodeBlockStrategy = node.getBlockStrategy();
+        BeanDefinitionBuilder builder = getBeanDefinitionBuilder(nodeBlockStrategy);
 
         builder.addConstructorArgValue(web3j)
                 .addConstructorArgValue(node.getName())
@@ -377,11 +343,10 @@ public class NodeBeanRegistrationStrategy {
                 .addConstructorArgReference("asyncTaskService")
                 .addConstructorArgReference("defaultBlockNumberService");
 
-        if (node.getChainType().equals(ChainType.HASHGRAPH) && nodeBlockStrategy.equals("POLL")) {
-            builder.addConstructorArgReference(hederaServiceBeanName);
-        }
-
-        if (nodeBlockStrategy.equals("POLL")) {
+        if (nodeBlockStrategy == BlockStrategy.POLL) {
+            if (node.getChainType() == ChainType.HASHGRAPH) {
+                builder.addConstructorArgReference(hederaServiceBeanName);
+            }
             builder.addConstructorArgValue(node.getPollingInterval());
         }
 
@@ -391,23 +356,20 @@ public class NodeBeanRegistrationStrategy {
         return beanName;
     }
 
-    private Class<? extends BlockchainService> resolveBlockchainServiceInstance() {
-        Reflections reflections = new Reflections("net.consensys.eventeum");
+    private BeanDefinitionBuilder getBeanDefinitionBuilder(BlockStrategy nodeBlockStrategy) {
+        BlockStrategy blockStrategy =
+                nodeBlockStrategy != null
+                        ? nodeBlockStrategy
+                        : BlockStrategy.valueOf(nodeSettings.getBlockStrategy());
 
-        List<Class<? extends BlockchainService>> list =
-                reflections.getSubTypesOf(BlockchainService.class).stream()
-                        .filter(
-                                (given) ->
-                                        given
-                                                != net.consensys.eventeum.chain.service.Web3jService
-                                                        .class)
-                        .collect(Collectors.toList());
-
-        if (list.isEmpty()) {
-            return net.consensys.eventeum.chain.service.Web3jService.class;
-        }
-
-        return list.get(0); // TODO Throw exception if there is more than one plugin?
+        return switch (blockStrategy) {
+            case POLL ->
+                    BeanDefinitionBuilder.genericBeanDefinition(
+                            PollingBlockSubscriptionStrategy.class);
+            case PUBSUB ->
+                    BeanDefinitionBuilder.genericBeanDefinition(
+                            PubSubBlockSubscriptionStrategy.class);
+        };
     }
 
     private boolean isWebSocketUrl(String nodeUrl) {

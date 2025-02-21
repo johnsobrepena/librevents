@@ -36,7 +36,7 @@ public class Node {
     private Long pollingInterval;
     private String username;
     private String password;
-    private String blockStrategy;
+    private BlockStrategy blockStrategy;
     private Boolean addTransactionRevertReason;
     private Integer maxIdleConnections;
     private Long keepAliveDuration;

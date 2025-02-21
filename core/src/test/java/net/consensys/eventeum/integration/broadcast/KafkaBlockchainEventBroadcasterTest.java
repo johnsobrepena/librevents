@@ -20,7 +20,7 @@ import java.util.Optional;
 import net.consensys.eventeum.dto.block.BlockDetails;
 import net.consensys.eventeum.dto.event.ContractEventDetails;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.event.filter.correlationId.ParameterCorrelationIdStrategy;
+import net.consensys.eventeum.dto.event.filter.correlation_id.ParameterCorrelationIdStrategy;
 import net.consensys.eventeum.dto.message.BlockEvent;
 import net.consensys.eventeum.dto.message.ContractEvent;
 import net.consensys.eventeum.dto.message.EventeumMessage;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-public class KafkaBlockchainEventBroadcasterTest {
+class KafkaBlockchainEventBroadcasterTest {
 
     private static final String BLOCK_EVENTS_TOPIC = "ThisIsABlockTopic";
 
@@ -75,7 +75,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastNewBlock() {
+    void testBroadcastNewBlock() {
         final BlockDetails blockDetails = createBlockDetails();
 
         underTest.broadcastNewBlock(blockDetails);
@@ -93,7 +93,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastContractEvent() {
+    void testBroadcastContractEvent() {
         final ContractEventDetails eventDetails = createContractEventDetails();
 
         underTest.broadcastContractEvent(eventDetails);
@@ -108,7 +108,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastContractEventDefaultCorrelationId() {
+    void testBroadcastContractEventDefaultCorrelationId() {
         final ContractEventDetails eventDetails = createContractEventDetails();
 
         underTest.broadcastContractEvent(eventDetails);
@@ -121,7 +121,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testCorrelationIdWhenStrategySetOnFilter() {
+    void testCorrelationIdWhenStrategySetOnFilter() {
 
         final ContractEventDetails eventDetails = createContractEventDetails();
 
@@ -145,7 +145,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastTransactionEvent() {
+    void testBroadcastTransactionEvent() {
         final TransactionDetails transactionDetails = createTransactionDetails();
 
         underTest.broadcastTransaction(transactionDetails);
@@ -158,7 +158,7 @@ public class KafkaBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastMessageEvent() {
+    void testBroadcastMessageEvent() {
         final MessageDetails messageDetails = createMessageDetails();
 
         underTest.broadcastMessage(messageDetails);

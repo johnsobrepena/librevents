@@ -97,7 +97,7 @@ public class MyContract extends Contract {
         for (Contract.EventValuesWithLog eventValues : valueList) {
             EventEventResponse typedResponse = new EventEventResponse();
             typedResponse.log = eventValues.getLog();
-            typedResponse.sender = (String) eventValues.getNonIndexedValues().get(0).getValue();
+            typedResponse.sender = (String) eventValues.getNonIndexedValues().getFirst().getValue();
             typedResponse.version =
                     (BigInteger) eventValues.getNonIndexedValues().get(1).getValue();
             typedResponse.otherdata =
@@ -119,7 +119,10 @@ public class MyContract extends Contract {
                                 typedResponse.log = log;
                                 typedResponse.sender =
                                         (String)
-                                                eventValues.getNonIndexedValues().get(0).getValue();
+                                                eventValues
+                                                        .getNonIndexedValues()
+                                                        .getFirst()
+                                                        .getValue();
                                 typedResponse.version =
                                         (BigInteger)
                                                 eventValues.getNonIndexedValues().get(1).getValue();

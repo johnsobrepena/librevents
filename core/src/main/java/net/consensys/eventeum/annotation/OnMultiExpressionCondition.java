@@ -32,9 +32,9 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 @Order(Ordered.LOWEST_PRECEDENCE - 20)
 class OnMultiExpressionCondition extends SpringBootCondition {
 
-    private String requiredExpression;
-    private String notRequiredExpression;
-    private Class<? extends Annotation> annotationClass;
+    private final String requiredExpression;
+    private final String notRequiredExpression;
+    private final Class<? extends Annotation> annotationClass;
 
     public OnMultiExpressionCondition(
             String requiredExpression,
@@ -61,12 +61,11 @@ class OnMultiExpressionCondition extends SpringBootCondition {
         expression = context.getEnvironment().resolvePlaceholders(expression);
         ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
         BeanExpressionResolver resolver =
-                (beanFactory != null) ? beanFactory.getBeanExpressionResolver() : null;
+                beanFactory != null
+                        ? beanFactory.getBeanExpressionResolver()
+                        : new StandardBeanExpressionResolver();
         BeanExpressionContext expressionContext =
                 (beanFactory != null) ? new BeanExpressionContext(beanFactory, null) : null;
-        if (resolver == null) {
-            resolver = new StandardBeanExpressionResolver();
-        }
         boolean result = (Boolean) resolver.evaluate(expression, expressionContext);
         return new ConditionOutcome(
                 result,

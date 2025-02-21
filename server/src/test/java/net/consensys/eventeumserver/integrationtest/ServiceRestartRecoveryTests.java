@@ -128,16 +128,16 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
                 "LAST BLOCK: "
                         + lastBlockNumber.get()
                         + " FIRST BLOCK AFTER RESTART: "
-                        + getBroadcastBlockMessages().get(0).getNumber());
+                        + getBroadcastBlockMessages().getFirst().getNumber());
         // Eventeum will rebroadcast the last seen block after restart in case block
         // wasn't fully processed (when numBlocksToReplay=0)
         assertTrue(
                 lastBlockNumber.get().intValue()
-                                == getBroadcastBlockMessages().get(0).getNumber().intValue()
+                                == getBroadcastBlockMessages().getFirst().getNumber().intValue()
                         || lastBlockNumber.get().intValue() - 1
-                                == getBroadcastBlockMessages().get(0).getNumber().intValue()
+                                == getBroadcastBlockMessages().getFirst().getNumber().intValue()
                         || lastBlockNumber.get().intValue() + 1
-                                == getBroadcastBlockMessages().get(0).getNumber().intValue());
+                                == getBroadcastBlockMessages().getFirst().getNumber().intValue());
 
         // Assert incremental blocks
         for (int i = 0; i < getBroadcastBlockMessages().size(); i++) {
@@ -182,7 +182,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.UNCONFIRMED);
     }
 
@@ -224,7 +224,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         verifyDummyEventDetails(
                 registeredFilter,
-                getBroadcastContractEvents().get(0),
+                getBroadcastContractEvents().getFirst(),
                 ContractEventStatus.CONFIRMED);
     }
 
@@ -274,7 +274,7 @@ public abstract class ServiceRestartRecoveryTests extends BaseKafkaIntegrationTe
 
         assertEquals(1, getBroadcastTransactionMessages().size());
 
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.UNCONFIRMED, txDetails.getStatus());
     }

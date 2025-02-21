@@ -28,17 +28,17 @@ public class WSServiceRestartRecoveryIT extends ServiceRestartRecoveryTests {
     }
 
     @Test
-    public void broadcastUnconfirmedEventAfterFailureTest() throws Exception {
+    void broadcastUnconfirmedEventAfterFailureTest() throws Exception {
         doBroadcastUnconfirmedEventAfterFailureTest();
     }
 
     @Test
-    public void broadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
+    void broadcastConfirmedEventAfter12BlocksWhenDownTest() throws Exception {
         doBroadcastConfirmedEventAfter12BlocksWhenDownTest();
     }
 
     @Test
-    public void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
+    void broadcastTransactionUnconfirmedAfterFailureTest() throws Exception {
         doBroadcastTransactionUnconfirmedAfterFailureTest();
     }
 }

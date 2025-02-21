@@ -27,8 +27,10 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class MonitoringConfiguration {
 
+    MonitoringConfiguration() {}
+
     @ConditionalOnProperty(name = "management.endpoint.metrics.enabled", havingValue = "true")
-    public class PrometheusConfiguration {
+    public static class PrometheusConfiguration {
 
         @Bean
         public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags(Environment environment) {
@@ -52,8 +54,8 @@ public class MonitoringConfiguration {
         }
 
         private String getProfileName(Environment environment) {
-            if (environment.getActiveProfiles() == null
-                    || environment.getActiveProfiles().length == 0) {
+            environment.getActiveProfiles();
+            if (environment.getActiveProfiles().length == 0) {
                 return "Default";
             }
 
@@ -65,7 +67,7 @@ public class MonitoringConfiguration {
             value = "management.endpoint.metrics.enabled",
             havingValue = "false",
             matchIfMissing = true)
-    public class DoNothingMonitoringConfiguration {
+    public static class DoNothingMonitoringConfiguration {
 
         @Bean
         public EventeumValueMonitor eventeumValueMonitor() {

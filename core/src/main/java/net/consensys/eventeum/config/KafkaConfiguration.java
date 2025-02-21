@@ -45,7 +45,12 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 @ConditionalOnKafkaRequired
 public class KafkaConfiguration {
 
-    @Autowired private KafkaSettings settings;
+    private final KafkaSettings settings;
+
+    @Autowired
+    public KafkaConfiguration(KafkaSettings settings) {
+        this.settings = settings;
+    }
 
     @Bean
     public KafkaAdmin eventeumAdmin() {

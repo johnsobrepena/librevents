@@ -37,7 +37,7 @@ public class ArrayParameter<T extends EventParameter<?>>
 
     @JsonIgnore private String stringRepresentation;
 
-    public ArrayParameter(String entryType, Class<T> arrayParameterType, ArrayList<T> value) {
+    public ArrayParameter(String entryType, ArrayList<T> value) {
         super(entryType + "[]", value);
 
         initStringRepresentation();

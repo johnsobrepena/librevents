@@ -42,7 +42,7 @@ import org.springframework.retry.support.RetryTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HttpBlockchainEventBroadcasterTest {
+class HttpBlockchainEventBroadcasterTest {
 
     private HttpBlockchainEventBroadcaster underTest;
 
@@ -75,7 +75,7 @@ public class HttpBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcastContractEvent() {
+    void testBroadcastContractEvent() {
         final List<ContractEventDetails> broadcastEvents = new ArrayList<>();
         httpConsumer = new StubHttpConsumer(HttpStatus.OK);
 
@@ -85,11 +85,11 @@ public class HttpBlockchainEventBroadcasterTest {
         underTest.broadcastContractEvent(contractEvent);
 
         assertEquals(1, broadcastEvents.size());
-        assertEquals(contractEvent, broadcastEvents.get(0));
+        assertEquals(contractEvent, broadcastEvents.getFirst());
     }
 
     @Test
-    public void testBroadcastBlockEvent() throws IOException {
+    void testBroadcastBlockEvent() throws IOException {
         httpConsumer = new StubHttpConsumer(HttpStatus.OK);
 
         final BlockDetails block = new BlockDetails();
@@ -107,7 +107,7 @@ public class HttpBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcasterTransactionEvent() throws IOException {
+    void testBroadcasterTransactionEvent() throws IOException {
         httpConsumer = new StubHttpConsumer(HttpStatus.OK);
 
         final TransactionDetails transaction = new TransactionDetails();
@@ -124,7 +124,7 @@ public class HttpBlockchainEventBroadcasterTest {
     }
 
     @Test
-    public void testBroadcasterMessageEvent() throws IOException {
+    void testBroadcasterMessageEvent() throws IOException {
         httpConsumer = new StubHttpConsumer(HttpStatus.OK);
 
         final MessageDetails message = new MessageDetails();

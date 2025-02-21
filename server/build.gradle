@@ -33,6 +33,7 @@ dependencies {
     testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
     testImplementation "org.testcontainers:mssqlserver:${testcontainersVersion}"
     testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testImplementation "org.testcontainers:rabbitmq:${testcontainersVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

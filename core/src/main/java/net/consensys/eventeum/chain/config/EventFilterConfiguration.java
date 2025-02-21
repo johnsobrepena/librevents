@@ -23,8 +23,8 @@ import java.util.concurrent.Callable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.consensys.eventeum.dto.event.filter.ContractEventFilter;
-import net.consensys.eventeum.dto.event.filter.correlationId.CorrelationIdType;
-import net.consensys.eventeum.dto.event.filter.correlationId.ParameterCorrelationIdStrategy;
+import net.consensys.eventeum.dto.event.filter.correlation_id.CorrelationIdType;
+import net.consensys.eventeum.dto.event.filter.correlation_id.ParameterCorrelationIdStrategy;
 import net.consensys.eventeum.utils.ModelMapperFactory;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -53,10 +53,10 @@ public class EventFilterConfiguration {
         List<ContractEventFilter> filtersToReturn = new ArrayList<>();
 
         if (eventFilters != null) {
-            final ModelMapper mapper = ModelMapperFactory.getInstance().getModelMapper();
+            final ModelMapper mapper = ModelMapperFactory.getModelMapper();
 
             eventFilters.forEach(
-                    (configFilter) -> {
+                    configFilter -> {
                         final ContractEventFilter contractEventFilter = new ContractEventFilter();
                         mapper.map(configFilter, contractEventFilter);
                         contractEventFilter.setContractAddress(

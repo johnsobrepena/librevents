@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import io.reactivex.Flowable;
 import jakarta.annotation.PostConstruct;
@@ -41,20 +40,23 @@ public class Web3JEeaService extends Web3jService {
 
     private final Web3j web3j;
     private final ContractEventDetailsFactory eventDetailsFactory;
-    private Besu web3JEea;
-    @Autowired private NodeSettings nodeSettings;
+    private final NodeSettings nodeSettings;
     private PrivacyConfNode privacyConf;
+    private Besu web3JEea;
 
+    @Autowired
     public Web3JEeaService(
             String nodeName,
             Web3j web3j,
             ContractEventDetailsFactory eventDetailsFactory,
             AsyncTaskService asyncTaskService,
-            EventBlockManagementService blockManagement) {
+            EventBlockManagementService blockManagement,
+            NodeSettings nodeSettings) {
 
         super(nodeName, web3j, eventDetailsFactory, asyncTaskService, blockManagement);
         this.web3j = web3j;
         this.eventDetailsFactory = eventDetailsFactory;
+        this.nodeSettings = nodeSettings;
     }
 
     @PostConstruct
@@ -74,12 +76,12 @@ public class Web3JEeaService extends Web3jService {
             EthFilter ethFilter, ContractEventFilter eventFilter, BigInteger blockNumber)
             throws IOException {
 
-        PrivacyConfFilter privData =
+        PrivacyConfFilter privateData =
                 PrivacyUtils.buildPrivacyConfFilterFromExtension(eventFilter.getExtension());
 
-        if (privData != null && privData.isEnabled() && isPrivacyEnabled()) {
+        if (privateData != null && privateData.isEnabled() && isPrivacyEnabled()) {
             final EthLog logs =
-                    web3JEea.privGetLogs(privData.getPrivacyGroupID(), ethFilter).send();
+                    web3JEea.privGetLogs(privateData.getPrivacyGroupID(), ethFilter).send();
             DefaultBlockParameterNumber blockParameterNumber =
                     new DefaultBlockParameterNumber(blockNumber);
             EthBlock ethBlock = this.web3j.ethGetBlockByNumber(blockParameterNumber, false).send();
@@ -92,7 +94,7 @@ public class Web3JEeaService extends Web3jService {
                                             ethBlock,
                                             getTransactionReceipt(
                                                     ((Log) logResult.get()).getTransactionHash())))
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         return super.extractEventDetailsFromLogs(ethFilter, eventFilter, blockNumber);
@@ -120,12 +122,7 @@ public class Web3JEeaService extends Web3jService {
         if (privData != null && privData.isEnabled() && isPrivacyEnabled()) {
             log.debug("Creating private EthLog flowable for filter {}", eventFilter.getId());
             return web3JEea.privLogFlowable(privData.getPrivacyGroupID(), ethFilter)
-                    .doOnComplete(
-                            () -> {
-                                if (onCompletion.isPresent()) {
-                                    onCompletion.get().run();
-                                }
-                            });
+                    .doOnComplete(() -> onCompletion.ifPresent(Runnable::run));
         }
 
         return super.createEthLogFlowable(ethFilter, eventFilter, onCompletion);
@@ -165,7 +162,7 @@ public class Web3JEeaService extends Web3jService {
             return privateTx
                     .getTransactionReceipt()
                     .map(
-                            (receipt) -> {
+                            receipt -> {
                                 // Node returns null for cumulativeGasUsed and gasUsed
                                 // so we have to set 0 value to avoid null pointers
                                 // in other parts of the code

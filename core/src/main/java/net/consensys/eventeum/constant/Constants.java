@@ -14,7 +14,9 @@
 
 package net.consensys.eventeum.constant;
 
-public interface Constants {
+public final class Constants {
 
-    String DEFAULT_NODE_NAME = "default";
+    public static final String DEFAULT_NODE_NAME = "default";
+
+    private Constants() {}
 }

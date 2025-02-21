@@ -34,20 +34,20 @@ import static org.springframework.test.util.AssertionErrors.assertTrue;
 public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
 
     @Test
-    public void testBroadcastBlock() throws Exception {
+    void testBroadcastBlock() throws Exception {
         triggerBlocks(1);
 
         waitForBlockMessages(1);
 
-        assertTrue("No blocks received", getBroadcastBlockMessages().size() >= 1);
+        assertTrue("No blocks received", !getBroadcastBlockMessages().isEmpty());
 
-        BlockDetails blockDetails = getBroadcastBlockMessages().get(0);
+        BlockDetails blockDetails = getBroadcastBlockMessages().getFirst();
         assertEquals(1, blockDetails.getNumber().compareTo(BigInteger.ZERO));
         assertNotNull(blockDetails.getHash());
     }
 
     @Test
-    public void testBroadcastContractEvent() throws Exception {
+    void testBroadcastContractEvent() throws Exception {
 
         final EventEmitter emitter = deployEventEmitterContract();
 
@@ -59,12 +59,12 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
 
         assertEquals(1, getBroadcastContractEvents().size());
 
-        final ContractEventDetails eventDetails = getBroadcastContractEvents().get(0);
+        final ContractEventDetails eventDetails = getBroadcastContractEvents().getFirst();
         verifyDummyEventDetails(registeredFilter, eventDetails, ContractEventStatus.CONFIRMED);
     }
 
     @Test
-    public void testBroadcastTransactionEvent() throws Exception {
+    void testBroadcastTransactionEvent() throws Exception {
 
         final String txHash = sendTransaction();
         TransactionMonitoringSpec monitorSpec =
@@ -77,7 +77,7 @@ public abstract class BroadcasterSmokeTest extends BaseIntegrationTest {
 
         assertEquals(1, getBroadcastTransactionMessages().size());
 
-        final TransactionDetails txDetails = getBroadcastTransactionMessages().get(0);
+        final TransactionDetails txDetails = getBroadcastTransactionMessages().getFirst();
         assertEquals(txHash, txDetails.getHash());
         assertEquals(TransactionStatus.CONFIRMED, txDetails.getStatus());
     }

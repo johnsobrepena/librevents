@@ -44,7 +44,7 @@ class BroadcastingMessageListenerTest {
     }
 
     @Test
-    public void testReceiveMessage() {
+    void testReceiveMessage() {
         this.underTest.onMessage(messageDetails);
 
         verify(eventBroadcaster, times(1)).broadcastMessage(messageDetails);
