@@ -38,7 +38,7 @@ dependencies {
 }
 
 bootJar {
-    mainClass = 'net.consensys.eventeumserver.Application'
+    mainClass = 'io.librevents.server.Application'
 }
 
 tasks.named("spotlessJava").configure {

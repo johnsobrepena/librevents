@@ -10,8 +10,8 @@ server:
 logging:
   level:
     org.springframework.web: DEBUG
-    net.consensys: DEBUG
-    net.consensys.configs: ERROR
+    io.librevents: DEBUG
+    io.librevents.configs: ERROR
     org.springframework.amqp: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
