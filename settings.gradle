@@ -1,5 +1,16 @@
+plugins {
+    id("com.gradle.enterprise") version "3.17.5"
+}
+
 rootProject.name = 'eventeum'
 
 include 'core'
 include 'server'
 include 'privacy'
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+    }
+}
