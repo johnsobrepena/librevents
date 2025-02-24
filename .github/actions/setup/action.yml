@@ -1,0 +1,16 @@
+name: 'Install pre-requisites'
+description: 'Install pre-requisites for building librevents'
+
+runs:
+  using: 'composite'
+  steps:
+    # Set up Java
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'corretto'
+        java-version: 21
+
+    # Set up Gradle
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
