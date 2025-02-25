@@ -103,7 +103,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Run integration tests with coverage
-        run: ./gradlew server:test --parallel --scan
+        run: ./gradlew server:test --scan
 
       - name: Upload Server JaCoCo HTML coverage
         uses: actions/upload-artifact@v4
