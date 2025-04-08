@@ -1,0 +1,15 @@
+broadcaster:
+  type: HTTP
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 12
+      numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
+  multiInstance: false
+  enableBlockNotifications: false
+  http:
+    blockEventsUrl: http://localhost:8082/consumer/block-event
+    contractEventsUrl: http://localhost:8082/consumer/contract-event
+    transactionEventsUrl: http://localhost:8082/consumer/transaction-event

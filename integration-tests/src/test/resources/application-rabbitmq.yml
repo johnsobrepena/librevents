@@ -1,0 +1,32 @@
+spring:
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    virtualHost: /
+    username: guest
+    password: guest
+    connectionTimeout: 30000
+    port: ${RABBIT_PORT:5672}
+    ssl:
+      enabled: false
+      algorithm: TLSv1.2
+
+broadcaster:
+  type: RABBIT
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 12
+      numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
+  multiInstance: false
+  enableBlockNotifications: false
+
+rabbitmq:
+  exchange: my_exchange
+  blockNotification: false
+  routingKey:
+    contractEvents: contract_events
+    blockEvents: block_events
+    transactionEvents: contract_events
+    messageEvents: message_events

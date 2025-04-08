@@ -1,0 +1,23 @@
+broadcaster:
+  type: KAFKA
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 12
+      numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
+  multiInstance: false
+  enableBlockNotifications: false
+
+kafka:
+  bootstrap:
+    addresses: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+  topic:
+    contractEvents: contract-events
+    blockEvents: block-events
+    eventeumEvents: eventeum-events
+    messageEvents: message-events
+    transactionEvents: transaction-events
+    partitions: 1
+    replicationSets: 1

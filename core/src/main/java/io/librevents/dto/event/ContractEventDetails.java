@@ -57,11 +57,11 @@ public class ContractEventDetails implements TransactionBasedDetails {
 
     private String nodeName;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Convert(converter = EventParameterConverter.class)
     private List<EventParameter> indexedParameters;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Convert(converter = EventParameterConverter.class)
     private List<EventParameter> nonIndexedParameters;
 

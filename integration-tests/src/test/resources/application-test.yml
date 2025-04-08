@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: eventeum
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    io.librevents: DEBUG
+    io.librevents.configs: ERROR
+    org.springframework.amqp: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c: %M - %m%n"
+
+eventStore:
+  type: ${EVENT_STORE_TYPE:DB}
+  url: ${EVENT_STORE_URL:http://localhost:8081/api/rest/v1}
+  eventPath: ${EVENT_STORE_EVENT_PATH:/event}
+  latestBlockPath: ${EVENT_STORE_LATEST_BLOCK_PATH:/latest-block}
+
+ethereum:
+  nodes:
+    - name: ${NODE_NAME:default}
+      url: ${NODE_PROTOCOL:http}://${NODE_HOST:localhost}:${NODE_PORT:8545}
+      blockStrategy: ${NODE_BLOCK_STRATEGY:POLL}
+      syncingThreshold: 100
+      healthcheckInterval: 2000
+      maxBlocksToSync: 2
+
+broadcaster:
+  type: KAFKA
+  cache:
+    expirationMillis: 6000000
+  event:
+    confirmation:
+      numBlocksToWait: 0
+      numBlocksToWaitForMissingTx: 100
+      numBlocksToWaitBeforeInvalidating: 2
+  multiInstance: false
+  enableBlockNotifications: false
+
+kafka:
+  bootstrap:
+    addresses: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+  topic:
+    contractEvents: contract-events
+    blockEvents: block-events
+    eventeumEvents: eventeum-events
+    messageEvents: message-events
+    transactionEvents: transaction-events
+    partitions: 1
+    replicationSets: 1
