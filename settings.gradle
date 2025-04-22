@@ -11,7 +11,7 @@ include 'integration-tests'
 
 develocity {
     buildScan {
-        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
-        termsOfUseAgree = "yes"
+        publishing.onlyIf { false }
+        uploadInBackground = false
     }
 }
